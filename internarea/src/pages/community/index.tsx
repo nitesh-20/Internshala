@@ -1,9 +1,11 @@
-import { selectuser } from "@/Feature/Userslice";
+import { login, selectuser } from "@/Feature/Userslice";
+import { auth } from "@/firebase/firebase";
 import { getApiBaseUrl, getAuthHeaders } from "@/lib/api";
+import { getStoredAuth, setStoredAuth } from "@/lib/authStorage";
 import axios from "axios";
 import Link from "next/link";
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import {
   Heart,
@@ -53,8 +55,13 @@ type CommunityComment = {
   isOwner: boolean;
 };
 
+type AuthHeaders = {
+  Authorization?: string;
+};
+
 const CommunityPage = () => {
   const user = useSelector(selectuser) as any;
+  const dispatch = useDispatch();
   const apiBaseUrl = getApiBaseUrl();
   const [feed, setFeed] = useState<CommunityPost[]>([]);
   const [friends, setFriends] = useState<CommunityUser[]>([]);
@@ -73,26 +80,79 @@ const CommunityPage = () => {
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [authHeaders, setAuthHeaders] = useState<AuthHeaders>({});
+  const [isResolvingAuth, setIsResolvingAuth] = useState(true);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const authHeaders = useMemo(() => getAuthHeaders(), []);
   const isAuthenticatedForCommunity = Boolean(authHeaders.Authorization);
   const friendCount = friends.length;
 
-  const loadCommunityState = async (pageNumber = 1, append = false) => {
-    if (!isAuthenticatedForCommunity) {
+  const hydrateCommunityAuth = async (): Promise<AuthHeaders> => {
+    const existingHeaders = getAuthHeaders();
+    if (existingHeaders.Authorization) {
+      setAuthHeaders(existingHeaders);
+      return existingHeaders;
+    }
+
+    const firebaseUser = auth?.currentUser;
+    const storedAuth = getStoredAuth();
+    const sourceUser = firebaseUser || storedAuth || user;
+    const sourceEmail = sourceUser?.email || firebaseUser?.email;
+
+    if (!sourceEmail) {
+      setAuthHeaders({});
+      return {};
+    }
+
+    try {
+      const syncRes = await axios.post(`${apiBaseUrl}/api/auth/google-sync`, {
+        name: sourceUser?.displayName || sourceUser?.name,
+        email: sourceEmail,
+        photo: sourceUser?.photoURL || sourceUser?.photo || "",
+        phoneNumber: sourceUser?.phoneNumber || "",
+      });
+
+      const syncedUser = {
+        uid: firebaseUser?.uid || storedAuth?.uid,
+        id: syncRes.data.user?.id,
+        photo: sourceUser?.photoURL || sourceUser?.photo || "",
+        name: sourceUser?.displayName || sourceUser?.name || "",
+        email: sourceEmail,
+        phoneNumber: sourceUser?.phoneNumber || "",
+        authProvider: "google",
+        token: syncRes.data.token,
+      };
+
+      setStoredAuth(syncedUser);
+      dispatch(login(syncedUser));
+
+      const nextHeaders = { Authorization: `Bearer ${syncRes.data.token}` };
+      setAuthHeaders(nextHeaders);
+      return nextHeaders;
+    } catch (error) {
+      console.error("Failed to hydrate community auth:", error);
+      setAuthHeaders({});
+      return {};
+    }
+  };
+
+  const loadCommunityState = async (
+    pageNumber = 1,
+    append = false,
+    headers: AuthHeaders = authHeaders
+  ) => {
+    if (!headers.Authorization) {
       setIsLoading(false);
       return;
     }
 
     try {
       const [meRes, feedRes, usersRes] = await Promise.all([
-        axios.get(`${apiBaseUrl}/api/community/me`, { headers: authHeaders }),
+        axios.get(`${apiBaseUrl}/api/community/me`, { headers }),
         axios.get(`${apiBaseUrl}/api/community/feed?page=${pageNumber}&limit=10`, {
-          headers: authHeaders,
+          headers,
         }),
         axios.get(`${apiBaseUrl}/api/community/users/search?q=${encodeURIComponent(search)}`, {
-          headers: authHeaders,
+          headers,
         }),
       ]);
 
@@ -113,8 +173,32 @@ const CommunityPage = () => {
   };
 
   useEffect(() => {
-    loadCommunityState();
-  }, [search]);
+    let isMounted = true;
+
+    const bootstrapCommunity = async () => {
+      setIsResolvingAuth(true);
+      setIsLoading(true);
+      const headers = await hydrateCommunityAuth();
+      if (!isMounted) return;
+
+      if (!headers.Authorization) {
+        setIsLoading(false);
+        setIsResolvingAuth(false);
+        return;
+      }
+
+      await loadCommunityState(1, false, headers);
+      if (isMounted) {
+        setIsResolvingAuth(false);
+      }
+    };
+
+    bootstrapCommunity();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [search, user]);
 
   const uploadFiles = async (files: File[]) => {
     const uploaded = [];
@@ -314,6 +398,18 @@ const CommunityPage = () => {
     setSelectedFiles([]);
     setShowComposer(true);
   };
+
+  if (isResolvingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-50 py-16 px-4">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+          <Users className="mx-auto h-12 w-12 animate-pulse text-blue-600" />
+          <h1 className="mt-4 text-3xl font-bold text-slate-900">Community Space</h1>
+          <p className="mt-3 text-slate-600">Checking your community access...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticatedForCommunity) {
     return (

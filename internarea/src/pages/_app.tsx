@@ -8,7 +8,9 @@ import { Provider, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { auth } from "@/firebase/firebase";
 import { login, logout } from "@/Feature/Userslice";
-import { clearStoredAuth, getStoredAuth } from "@/lib/authStorage";
+import { clearStoredAuth, getStoredAuth, setStoredAuth } from "@/lib/authStorage";
+import { getApiBaseUrl } from "@/lib/api";
+import axios from "axios";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 export default function App({ Component, pageProps }: AppProps) {
@@ -20,6 +22,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
   function AuthListener() {
     const dispatch = useDispatch();
+    const apiBaseUrl = getApiBaseUrl();
 
     useEffect(() => {
       const storedUser = getStoredAuth();
@@ -36,16 +39,36 @@ export default function App({ Component, pageProps }: AppProps) {
 
       const unsubscribe = auth.onAuthStateChanged(async (authuser) => {
         if (authuser) {
-          dispatch(
-            login({
-              uid: authuser.uid,
-              photo: authuser.photoURL,
+          const fallbackGoogleUser = {
+            uid: authuser.uid,
+            photo: authuser.photoURL || "",
+            name: authuser.displayName || "",
+            email: authuser.email || "",
+            phoneNumber: authuser.phoneNumber || "",
+            authProvider: "google",
+          };
+
+          try {
+            const syncRes = await axios.post(`${apiBaseUrl}/api/auth/google-sync`, {
               name: authuser.displayName,
               email: authuser.email,
+              photo: authuser.photoURL,
               phoneNumber: authuser.phoneNumber,
-              authProvider: "google",
-            })
-          );
+            });
+
+            const syncedGoogleUser = {
+              ...fallbackGoogleUser,
+              id: syncRes.data.user?.id,
+              token: syncRes.data.token,
+            };
+
+            setStoredAuth(syncedGoogleUser);
+            dispatch(login(syncedGoogleUser));
+          } catch (error) {
+            console.error("Failed to sync persisted Google auth:", error);
+            setStoredAuth(fallbackGoogleUser);
+            dispatch(login(fallbackGoogleUser));
+          }
         } else {
           const latestStoredUser = getStoredAuth();
           if (latestStoredUser?.authProvider === "local") {
@@ -58,7 +81,7 @@ export default function App({ Component, pageProps }: AppProps) {
       });
 
       return unsubscribe;
-    }, [dispatch]);
+    }, [apiBaseUrl, dispatch]);
     return null;
   }
 
