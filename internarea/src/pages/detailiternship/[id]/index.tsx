@@ -89,6 +89,7 @@ const index = () => {
   const [availability, setAvailability] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
+  const user = useSelector(selectuser);
   const [userResume, setUserResume] = useState<any>(null);
 
   useEffect(() => {
@@ -98,7 +99,6 @@ const index = () => {
         .catch(err => console.log("No resume found"));
     }
   }, [user]);
-  const user=useSelector(selectuser)
   if (!internshipData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
