@@ -5,8 +5,10 @@ const intern = require("./internship");
 const job = require("./job");
 const application=require("./application")
 const resume = require("./resume");
+const auth = require("./auth");
 
 router.use("/admin", admin);
+router.use("/auth", auth);
 router.use("/internship", intern);
 router.use("/job", job);
 router.use("/application", application);

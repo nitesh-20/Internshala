@@ -8,6 +8,7 @@ import { Provider, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { auth } from "@/firebase/firebase";
 import { login, logout } from "@/Feature/Userslice";
+import { clearStoredAuth, getStoredAuth } from "@/lib/authStorage";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 export default function App({ Component, pageProps }: AppProps) {
@@ -19,13 +20,21 @@ export default function App({ Component, pageProps }: AppProps) {
 
   function AuthListener() {
     const dispatch = useDispatch();
+
     useEffect(() => {
+      const storedUser = getStoredAuth();
+      if (storedUser && storedUser.authProvider === "local") {
+        dispatch(login(storedUser));
+      }
+
       if (!auth) {
-        dispatch(logout());
+        if (!storedUser) {
+          dispatch(logout());
+        }
         return;
       }
 
-      const unsubscribe = auth.onAuthStateChanged((authuser) => {
+      const unsubscribe = auth.onAuthStateChanged(async (authuser) => {
         if (authuser) {
           dispatch(
             login({
@@ -34,10 +43,17 @@ export default function App({ Component, pageProps }: AppProps) {
               name: authuser.displayName,
               email: authuser.email,
               phoneNumber: authuser.phoneNumber,
+              authProvider: "google",
             })
           );
         } else {
-          dispatch(logout());
+          const latestStoredUser = getStoredAuth();
+          if (latestStoredUser?.authProvider === "local") {
+            dispatch(login(latestStoredUser));
+          } else {
+            clearStoredAuth();
+            dispatch(logout());
+          }
         }
       });
 
