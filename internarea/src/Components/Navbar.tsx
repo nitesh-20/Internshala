@@ -256,7 +256,6 @@ const Navbar = () => {
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
               <a href="/" className="flex items-center gap-2 group">
-                <img src={"/logo.png"} alt="InternArea" className="h-10 w-auto group-hover:scale-105 transition-transform" />
                 <span className="text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                   Intern<span className="text-blue-600">Area</span>
                 </span>

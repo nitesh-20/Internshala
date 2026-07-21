@@ -211,8 +211,8 @@ const Index = () => {
                     <Award size={20} className="text-slate-400" /> Perks
                   </h3>
                   <div className="flex flex-wrap gap-2 pl-7 ml-2">
-                    {(internshipData.perks || "").split(",").map((perk: string, i: number) => (
-                      perk.trim() && (
+                    {(typeof internshipData.perks === 'string' ? internshipData.perks.split(",") : Array.isArray(internshipData.perks) ? internshipData.perks : []).map((perk: string, i: number) => (
+                      perk && typeof perk === 'string' && perk.trim() && (
                         <span key={i} className="px-4 py-2 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl flex items-center gap-2">
                           <CheckCircle2 size={16} className="text-blue-600" /> {perk.trim()}
                         </span>
