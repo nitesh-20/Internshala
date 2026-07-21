@@ -216,20 +216,8 @@ const ResumeBuilder = () => {
         }
       };
 
-      // Mock payment bypass
-      if (order.id.startsWith("order_mock_")) {
-          toast.info("Mocking payment success (No real API keys found).");
-          await handlerFn({
-              razorpay_order_id: order.id,
-              razorpay_payment_id: "pay_mock_" + Date.now(),
-              razorpay_signature: "mock_signature"
-          });
-          setIsLoading(false);
-          return;
-      }
-
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_dummy_key_id', 
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
         amount: order.amount,
         currency: order.currency,
         name: "Internshala Premium",

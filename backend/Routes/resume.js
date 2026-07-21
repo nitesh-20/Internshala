@@ -62,11 +62,6 @@ router.post('/create-order', async (req, res) => {
             receipt: "receipt_" + Date.now()
         };
 
-        // If no real Razorpay keys are provided, mock the order creation
-        if (!process.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID === 'rzp_test_dummy_key_id') {
-            return res.json({ id: "order_mock_" + Date.now(), amount: options.amount, currency: options.currency });
-        }
-
         const order = await razorpay.orders.create(options);
         res.json(order);
     } catch (error) {
@@ -80,18 +75,15 @@ router.post('/verify-and-generate', async (req, res) => {
     try {
         const { email, razorpay_order_id, razorpay_payment_id, razorpay_signature, resumeData } = req.body;
 
-        // Skip signature verification if it's a mock order
-        if (!razorpay_order_id.startsWith("order_mock_")) {
-            // Verify Signature
-            const sign = razorpay_order_id + "|" + razorpay_payment_id;
-            const expectedSign = crypto
-                .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET || 'dummy_secret')
-                .update(sign.toString())
-                .digest("hex");
+        // Verify Signature
+        const sign = razorpay_order_id + "|" + razorpay_payment_id;
+        const expectedSign = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(sign.toString())
+            .digest("hex");
 
-            if (razorpay_signature !== expectedSign) {
-                return res.status(400).json({ error: "Invalid payment signature" });
-            }
+        if (razorpay_signature !== expectedSign) {
+            return res.status(400).json({ error: "Invalid payment signature" });
         }
 
         // Generate PDF
