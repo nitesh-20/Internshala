@@ -1,141 +1,50 @@
-import Link from "next/link";
-import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import { selectuser } from "@/Feature/Userslice";
+import axios from "axios";
 import {
   ArrowUpRight,
   Book,
   Calendar,
-  Cat,
   Clock,
   DollarSign,
   ExternalLink,
   MapPin,
   X,
+  Briefcase,
+  Users,
+  Award,
+  CheckCircle2,
+  ChevronRight,
+  Building2,
+  Zap
 } from "lucide-react";
-import axios from "axios";
-import { toast } from "react-toastify";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { selectuser } from "@/Feature/Userslice";
-// const filteredJobs = [
-//     {
-//       _id: "101",
-//       title: "Frontend Developer",
-//       company: "Amazon",
-//       location: "Seattle",
-//       CTC: "$100K/year",
-//       Experience: "2+ years",
-//       category: "Engineering",
-//       StartDate: "April 1, 2025",
-//       aboutCompany:
-//         "Amazon is a global leader in e-commerce and cloud computing, providing cutting-edge technology solutions.",
-//       aboutJob:
-//         "Seeking a skilled Frontend Developer proficient in React.js, JavaScript, and UI development.",
-//       Whocanapply:
-//         "Developers with experience in JavaScript, React.js, and modern frontend frameworks.",
-//       perks:
-//         "Remote work, stock options, health insurance, learning resources.",
-//       AdditionalInfo: "This role is hybrid with occasional onsite meetings.",
-//       numberOfopning: "3",
-//     },
-//     {
-//       _id: "102",
-//       title: "Data Analyst",
-//       company: "Microsoft",
-//       location: "Remote",
-//       CTC: "$90K/year",
-//       Experience: "1+ years",
-//       category: "Data Science",
-//       StartDate: "March 15, 2025",
-//       aboutCompany:
-//         "Microsoft is a technology company specializing in software development, cloud computing, and AI.",
-//       aboutJob:
-//         "Looking for a Data Analyst with expertise in SQL, Python, and data visualization tools.",
-//       Whocanapply:
-//         "Candidates with experience in data analytics, SQL, Python, and Tableau/Power BI.",
-//       perks: "Flexible hours, remote work, upskilling programs, bonuses.",
-//       AdditionalInfo: "This is a fully remote role.",
-//       numberOfopning: "2",
-//     },
-//     {
-//       _id: "103",
-//       title: "UX Designer",
-//       company: "Apple",
-//       location: "California",
-//       CTC: "$110K/year",
-//       Experience: "3+ years",
-//       category: "Design",
-//       StartDate: "March 30, 2025",
-//       aboutCompany:
-//         "Apple is a leader in consumer electronics and software, focusing on design and innovation.",
-//       aboutJob:
-//         "Seeking a UX Designer to craft intuitive user experiences for our next-generation products.",
-//       Whocanapply:
-//         "Designers with experience in Figma, Adobe XD, user research, and usability testing.",
-//       perks:
-//         "Creative environment, free lunches, fitness perks, flexible hours.",
-//       AdditionalInfo: "Office-based with occasional remote work options.",
-//       numberOfopning: "1",
-//     },
-//     {
-//       _id: "104",
-//       title: "Backend Developer",
-//       company: "NextGen Solutions",
-//       location: "Austin, TX",
-//       CTC: "$90,000 - $110,000",
-//       Experience: "3-5 years",
-//       category: "Engineering",
-//       StartDate: "March 20, 2025",
-//       aboutCompany:
-//         "NextGen Solutions specializes in building scalable backend systems and APIs for high-performance applications.",
-//       aboutJob:
-//         "Looking for a Backend Developer skilled in Node.js, Express.js, and database management.",
-//       Whocanapply:
-//         "Developers with experience in server-side programming, databases (SQL, NoSQL), and RESTful APIs.",
-//       perks: "Stock options, remote work, gym membership, yearly bonuses.",
-//       AdditionalInfo: "Hybrid role with 2 days of in-office meetings per week.",
-//       numberOfopning: "3",
-//     },
-//     {
-//       _id: "105",
-//       title: "UI/UX Designer",
-//       company: "Design Pro",
-//       location: "San Francisco, CA",
-//       CTC: "$70,000 - $85,000",
-//       Experience: "2+ years",
-//       category: "Design",
-//       StartDate: "March 25, 2025",
-//       aboutCompany:
-//         "Design Pro is an award-winning UI/UX design agency focusing on innovative user experiences.",
-//       aboutJob:
-//         "We need a UI/UX Designer who can create user-friendly interfaces and improve the user experience of our applications.",
-//       Whocanapply:
-//         "Designers with proficiency in Figma, Adobe XD, and user research methodologies.",
-//       perks:
-//         "Creative workspace, wellness programs, free team lunches, flexible hours.",
-//       AdditionalInfo: "Office-based with flexible working hours.",
-//       numberOfopning: "1",
-//     },
-//   ];
-const index = () => {
-  const user=useSelector(selectuser)
+import { toast } from "react-toastify";
+
+const Index = () => {
   const router = useRouter();
   const { id } = router.query;
-  const [jobdata, setjob] = useState<any>([]);
+  const [jobData, setJobData] = useState<any>(null);
+  
   useEffect(() => {
-    const fetchdata = async () => {
+    if (!id) return;
+    const fetchData = async () => {
       try {
         const res = await axios.get(`http://localhost:5001/api/job/${id}`);
-        setjob(res.data);
+        setJobData(res.data);
       } catch (error) {
         console.log(error);
       }
     };
-    fetchdata();
+    fetchData();
   }, [id]);
 
   const [availability, setAvailability] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
+  const user = useSelector(selectuser);
   const [userResume, setUserResume] = useState<any>(null);
 
   useEffect(() => {
@@ -145,38 +54,41 @@ const index = () => {
         .catch(err => console.log("No resume found"));
     }
   }, [user]);
-  if (!jobdata) {
+
+  if (!jobData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center space-y-4">
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+        </div>
+        <p className="text-slate-500 font-medium animate-pulse">Loading details...</p>
       </div>
     );
   }
-  const handlesubmitapplication = async () => {
+
+  const handleSubmitApplication = async () => {
     if (!coverLetter.trim()) {
-      toast.error("please write a cover letter");
+      toast.error("Please write a cover letter");
       return;
     }
     if (!availability) {
-      toast.error("please select your availability");
+      toast.error("Please select your availability");
       return;
     }
     try {
-      const applicationdata = {
-        category: jobdata.category,
-        company: jobdata.company,
+      const applicationData = {
+        category: jobData.category,
+        company: jobData.company,
         coverLetter: coverLetter,
         user: user,
         Application: id,
         availability,
         resumeUrl: userResume && userResume.isPaid ? userResume.pdfUrl : null
       };
-      await axios.post(
-        "http://localhost:5001/api/application",
-        applicationdata
-      );
-      toast.success("Application submit successfully");
-      router.push("/job");
+      await axios.post("http://localhost:5001/api/application", applicationData);
+      toast.success("Application submitted successfully");
+      router.push('/job');
     } catch (error: any) {
       console.error(error);
       if (error.response?.status === 403 && error.response?.data?.error?.includes("limit")) {
@@ -187,142 +99,235 @@ const index = () => {
       }
     }
   };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        {/* Header Section */}
-        <div className="p-6 border-b">
-          <div className="flex items-center space-x-2 text-blue-600 mb-4">
-            <ArrowUpRight className="h-5 w-5" />
-            <span className="font-medium">Actively Hiring</span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {jobdata.title}
-          </h1>
-          <p className="text-lg text-gray-600 mb-4">{jobdata.company}</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-center space-x-2 text-gray-600">
-              <MapPin className="h-5 w-5" />
-              <span>{jobdata.location}</span>
-            </div>
-            <div className="flex items-center space-x-2 text-gray-600">
-              <DollarSign className="h-5 w-5" />
-              <span>CTC {jobdata.CTC}</span>
-            </div>
-            <div className="flex items-center space-x-2 text-gray-600">
-              <Book className="h-5 w-5" />
-              <span>{jobdata.category}</span>
-            </div>
-          </div>
-          <div className="mt-4 flex items-center space-x-2">
-            <Clock className="h-4 w-4 text-green-500" />
-            <span className="text-green-500 text-sm">
-              Posted on {jobdata.createAt}
-            </span>
-          </div>
-        </div>
-        {/* Company Section */}
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            About {jobdata.company}
-          </h2>
-          <div className="flex items-center space-x-2 mb-4">
-            <a
-              href="#"
-              className="text-blue-600 hover:text-blue-700 flex items-center space-x-1"
-            >
-              <span>Visit company website</span>
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </div>
-          <p className="text-gray-600">{jobdata.aboutCompany}</p>
-        </div>
-        {/* Internship Details Section */}
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            About the Internship
-          </h2>
-          <p className="text-gray-600 mb-6">{jobdata.aboutJob}</p>
+    <div className="min-h-screen bg-slate-50 py-12 font-sans pb-24">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Breadcrumb */}
+        <nav className="flex items-center text-sm font-medium text-slate-500 mb-8 space-x-2">
+          <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
+          <ChevronRight size={16} />
+          <Link href="/job" className="hover:text-blue-600 transition-colors">Jobs</Link>
+          <ChevronRight size={16} />
+          <span className="text-slate-900 truncate max-w-[200px]">{jobData.title}</span>
+        </nav>
 
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Who can apply
-          </h3>
-          <p className="text-gray-600 mb-6">{jobdata.whoCanApply}</p>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main Content Area */}
+          <div className="flex-1 space-y-6">
+            
+            {/* Header Card */}
+            <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-60"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full w-fit mb-6 border border-emerald-100 uppercase tracking-wide">
+                  <Zap size={14} className="fill-emerald-500" /> Actively Hiring
+                </div>
 
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Perks</h3>
-          <p className="text-gray-600 mb-6">{jobdata.perks}</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+                  <div className="flex gap-5 items-center">
+                    <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center shrink-0 text-3xl font-bold text-slate-300">
+                      {jobData.company?.charAt(0) || <Building2 size={36} />}
+                    </div>
+                    <div>
+                      <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2 leading-tight tracking-tight">
+                        {jobData.title}
+                      </h1>
+                      <div className="flex items-center gap-2 text-lg text-slate-600 font-medium">
+                        {jobData.company}
+                        <ExternalLink size={16} className="text-slate-400 cursor-pointer hover:text-blue-600 transition-colors" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Additional Information
-          </h3>
-          <p className="text-gray-600 mb-6">{jobdata.AdditionalInfo}</p>
-        </div>
-        {/* Apply Button */}
-        <div className="p-6 flex justify-center">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-150"
-          >
-            Apply Now
-          </button>
-        </div>
-      </div>
-      {/* Apply Modal */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <div className="flex items-center gap-2 text-slate-500 mb-1">
+                      <MapPin size={16} /> <span className="text-xs font-bold uppercase tracking-wider">Location</span>
+                    </div>
+                    <p className="font-semibold text-slate-900">{jobData.location}</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 text-slate-500 mb-1">
+                      <DollarSign size={16} /> <span className="text-xs font-bold uppercase tracking-wider">CTC</span>
+                    </div>
+                    <p className="font-semibold text-slate-900">{jobData.CTC}</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 text-slate-500 mb-1">
+                      <Book size={16} /> <span className="text-xs font-bold uppercase tracking-wider">Category</span>
+                    </div>
+                    <p className="font-semibold text-slate-900">{jobData.category}</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 text-slate-500 mb-1">
+                      <Briefcase size={16} /> <span className="text-xs font-bold uppercase tracking-wider">Experience</span>
+                    </div>
+                    <p className="font-semibold text-slate-900">{jobData.Experience || "Not specified"}</p>
+                  </div>
+                </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Apply to {jobdata.company}
-                </h2>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-6 w-6" />
-                </button>
+                <div className="mt-6 flex items-center justify-between">
+                   <div className="flex items-center gap-2 text-sm font-medium text-slate-500 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
+                    <Clock size={16} /> Posted {new Date(jobData.createAt || Date.now()).toLocaleDateString()}
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="p-6 space-y-6">
-              {/* Resume Section */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Your Resume
-                </h3>
-                {userResume && userResume.isPaid ? (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-center space-x-2">
-                    <Book className="w-5 h-5" />
-                    <span>Your <strong>Premium Resume</strong> will automatically be attached to this application!</span>
+
+            {/* About Company */}
+            <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+              <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Building2 className="text-blue-600" /> About {jobData.company}
+              </h2>
+              <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-wrap">
+                {jobData.aboutCompany}
+              </div>
+            </div>
+
+            {/* About Role */}
+            <div className="bg-white rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+              <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Briefcase className="text-blue-600" /> About the Job
+              </h2>
+              <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed whitespace-pre-wrap mb-8">
+                {jobData.aboutJob || "Details not provided."}
+              </div>
+
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                    <Users size={20} className="text-slate-400" /> Who can apply
+                  </h3>
+                  <p className="text-slate-600 leading-relaxed whitespace-pre-wrap pl-7 border-l-2 border-slate-100 ml-2">
+                    {jobData.whoCanApply || "Open to all relevant candidates."}
+                  </p>
+                </div>
+
+                {jobData.perks && (
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                      <Award size={20} className="text-slate-400" /> Perks
+                    </h3>
+                    <div className="flex flex-wrap gap-2 pl-7 ml-2">
+                      {jobData.perks.split(",").map((perk: string, i: number) => (
+                        perk.trim() && (
+                          <span key={i} className="px-4 py-2 bg-slate-50 border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl flex items-center gap-2">
+                            <CheckCircle2 size={16} className="text-blue-600" /> {perk.trim()}
+                          </span>
+                        )
+                      ))}
+                    </div>
                   </div>
-                ) : (
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700">
-                    <p className="mb-2">Your default profile resume will be submitted.</p>
-                    <Link href="/resume" className="text-sm font-semibold underline hover:text-blue-800">
-                      Create an ATS-friendly Premium Resume (₹50) to stand out!
-                    </Link>
+                )}
+
+                {jobData.AdditionalInfo && (
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-3">Additional Information</h3>
+                    <p className="text-slate-600 leading-relaxed bg-amber-50 p-4 rounded-xl border border-amber-100 text-sm">
+                      {jobData.AdditionalInfo}
+                    </p>
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Right Sticky Sidebar */}
+          <div className="w-full lg:w-80 shrink-0">
+            <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 sticky top-28">
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Ready to apply?</h3>
+              <p className="text-sm text-slate-500 mb-6">Review the requirements and submit your application today.</p>
+              
+              <div className="space-y-4 mb-8">
+                <div className="flex justify-between items-center py-3 border-b border-slate-100">
+                  <span className="text-slate-500 text-sm">Openings</span>
+                  <span className="font-bold text-slate-900 bg-slate-50 px-3 py-1 rounded-lg">{jobData.numberOfOpening || 1}</span>
+                </div>
+                <div className="flex justify-between items-center py-3 border-b border-slate-100">
+                  <span className="text-slate-500 text-sm">Applicants</span>
+                  <span className="font-bold text-slate-900 bg-slate-50 px-3 py-1 rounded-lg">~45</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full bg-blue-600 text-white font-bold text-lg px-8 py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Apply Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Premium Apply Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+          
+          {/* Modal Content */}
+          <div className="relative bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl animate-in zoom-in-95 duration-300">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 sm:px-8 border-b border-slate-100">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Cover Letter
+                <h2 className="text-2xl font-extrabold text-slate-900 mb-1">Apply to {jobData.company}</h2>
+                <p className="text-sm font-medium text-slate-500">{jobData.title}</p>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 sm:px-8 overflow-y-auto custom-scrollbar space-y-8 flex-1">
+              
+              {/* Resume Section */}
+              <section>
+                <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
+                  <Book size={20} className="text-blue-600" /> Resume / CV
                 </h3>
-                <p className="text-gray-600 mb-2">
-                  Why should you be selected for this internship?
-                </p>
+                {userResume && userResume.isPaid ? (
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-800 flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 mt-0.5 text-emerald-600 shrink-0" />
+                    <div>
+                      <p className="font-bold mb-1">Premium Resume Attached</p>
+                      <p className="text-sm text-emerald-700/80">Your ATS-friendly premium resume will be automatically included with this application.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-blue-800">
+                    <p className="font-bold mb-1">Standard Profile Resume</p>
+                    <p className="text-sm text-blue-700/80 mb-3">Your default profile data will be submitted.</p>
+                    <Link href="/resume" className="inline-block px-4 py-2 bg-white text-blue-700 text-sm font-bold rounded-xl border border-blue-200 hover:bg-blue-100 transition-colors shadow-sm">
+                      Upgrade to Premium Resume
+                    </Link>
+                  </div>
+                )}
+              </section>
+
+              {/* Cover Letter Section */}
+              <section>
+                <h3 className="text-lg font-bold text-slate-900 mb-1">Cover Letter</h3>
+                <p className="text-sm text-slate-500 mb-4">Why should you be hired for this role?</p>
                 <textarea
                   value={coverLetter}
                   onChange={(e) => setCoverLetter(e.target.value)}
-                  className="w-full h-32 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-black"
-                  placeholder="Write your cover letter here..."
+                  className="w-full h-40 p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all text-slate-700 resize-none outline-none"
+                  placeholder="Mention your skills, projects, and why you are a good fit..."
                 ></textarea>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Your Availability
-                </h3>
+              </section>
+
+              {/* Availability Section */}
+              <section>
+                <h3 className="text-lg font-bold text-slate-900 mb-4">Your Availability</h3>
                 <div className="space-y-3">
                   {[
                     "Yes, I am available to join immediately",
@@ -330,38 +335,48 @@ const index = () => {
                     "No, I will have to serve notice period",
                     "Other",
                   ].map((option) => (
-                    <label key={option} className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        name=""
-                        id=""
-                        value={option}
-                        checked={availability === option}
-                        onChange={(e) => setAvailability(e.target.value)}
-                        className="h-4 w-4 text-blue-600"
-                      />
-                      <span className="text-gray-700">{option}</span>
+                    <label key={option} className="flex items-start gap-3 p-4 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors group">
+                      <div className="relative flex items-center justify-center mt-0.5">
+                        <input
+                          type="radio"
+                          name="availability"
+                          value={option}
+                          checked={availability === option}
+                          onChange={(e) => setAvailability(e.target.value)}
+                          className="peer w-5 h-5 appearance-none rounded-full border border-slate-300 checked:border-blue-600 cursor-pointer transition-colors"
+                        />
+                        <div className="absolute w-2.5 h-2.5 rounded-full bg-blue-600 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none"></div>
+                      </div>
+                      <span className="text-slate-700 font-medium group-hover:text-slate-900">{option}</span>
                     </label>
                   ))}
                 </div>
-              </div>
-              <div className="flex justify-end pt-4">
-                {user ? (
-                  <button
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-                    onClick={handlesubmitapplication}
-                  >
-                    Submit Application
-                  </button>
-                ) : (
-                  <Link
-                    href={`/`}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Sign up to apply
-                  </Link>
-                )}
-              </div>
+              </section>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 sm:px-8 border-t border-slate-100 bg-slate-50 rounded-b-3xl flex justify-end gap-3">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-6 py-3 font-bold text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              {user ? (
+                <button 
+                  className="px-8 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm"
+                  onClick={handleSubmitApplication}
+                >
+                  Submit Application
+                </button>
+              ) : (
+                <Link
+                  href={`/`}
+                  className="px-8 py-3 font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors shadow-sm"
+                >
+                  Sign in to apply
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -370,4 +385,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default Index;
