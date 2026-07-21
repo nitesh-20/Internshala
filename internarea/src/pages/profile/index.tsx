@@ -26,8 +26,12 @@ const index = () => {
               {user?.photo ? (
                 <img
                   src={user?.photo}
-                  alt={user?.name}
-                  className="w-24 h-24 rounded-full border-4 border-white shadow-lg"
+                  alt={user?.name?.charAt(0) || "U"}
+                  className="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover bg-gray-200 text-gray-500 flex items-center justify-center text-xl font-bold"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = "https://cdn-icons-png.flaticon.com/128/149/149071.png";
+                  }}
                 />
               ) : (
                 <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg bg-gray-200 flex items-center justify-center">
