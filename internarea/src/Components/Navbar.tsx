@@ -46,8 +46,12 @@ const Navbar = () => {
     try {
       const res = await axios.post("http://localhost:5001/api/language/request-otp", { email, languageCode });
       toast.success(res.data.message || "OTP sent successfully!");
-      if (res.data.dev_otp) {
-        console.log("DEV_OTP:", res.data.dev_otp);
+      if (res.data.previewUrl) {
+        console.log("=========================================");
+        console.log("📬 View your OTP Email here:");
+        console.log(res.data.previewUrl);
+        console.log("=========================================");
+        toast.info("Check your browser console for the Email Link!");
       }
       setResendTimer(60);
       setExpireTimer(300);

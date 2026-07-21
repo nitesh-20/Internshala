@@ -47,20 +47,34 @@ router.post('/request-otp', otpRateLimiter, async (req, res) => {
             purpose: 'LANGUAGE_CHANGE'
         });
 
-        // Try to send email, but don't crash if Ethereal credentials are fake/missing
+        // Generate test account dynamically so user doesn't need to configure .env
+        let testAccount = await nodemailer.createTestAccount();
+        let dynamicTransporter = nodemailer.createTransport({
+            host: "smtp.ethereal.email",
+            port: 587,
+            secure: false, // true for 465, false for other ports
+            auth: {
+                user: testAccount.user, // generated ethereal user
+                pass: testAccount.pass, // generated ethereal password
+            },
+        });
+
+        let previewUrl = "";
         try {
-            await transporter.sendMail({
+            let info = await dynamicTransporter.sendMail({
                 from: '"Internshala Security" <security@internshala.com>',
-                to: email,
+                to: email, // This sends to whatever user logs in
                 subject: 'OTP for Language Change',
                 text: `Your OTP to switch language to ${languageCode.toUpperCase()} is ${otpCode}. It expires in 5 minutes.`
             });
+            previewUrl = nodemailer.getTestMessageUrl(info);
+            console.log("Email sent! Preview URL: %s", previewUrl);
         } catch (emailError) {
             console.log("Email sending bypassed (mock credentials failed). OTP is:", otpCode);
         }
 
-        // For local development without real email, return the OTP in response (REMOVE IN PRODUCTION)
-        res.json({ message: "OTP sent successfully to " + email, dev_otp: otpCode });
+        // Return the previewUrl so the frontend can display it
+        res.json({ message: "OTP sent successfully to " + email, dev_otp: otpCode, previewUrl });
     } catch (error) {
         console.error("OTP Send Error:", error);
         res.status(500).json({ error: "Server error sending OTP" });
