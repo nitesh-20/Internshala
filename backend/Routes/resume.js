@@ -7,11 +7,21 @@ const fs = require('fs');
 const path = require('path');
 const Resume = require('../Model/Resume');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_dummy_key_id',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy_secret'
-});
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+const PAYMENT_AMOUNT_INR = 50;
+const serverBaseUrl = process.env.SERVER_BASE_URL || 'http://localhost:5001';
+
+const getRazorpayClient = () => {
+    if (!RAZORPAY_KEY_ID || !RAZORPAY_KEY_SECRET) {
+        throw new Error('Razorpay credentials are missing. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.');
+    }
+
+    return new Razorpay({
+        key_id: RAZORPAY_KEY_ID,
+        key_secret: RAZORPAY_KEY_SECRET
+    });
+};
 
 // Helper to draw text if it exists
 function drawText(doc, text, options = {}) {
@@ -56,17 +66,28 @@ router.post('/create-order', async (req, res) => {
         const { email } = req.body;
         if (!email) return res.status(400).json({ error: "Email is required" });
 
+        const razorpay = getRazorpayClient();
+
         const options = {
-            amount: 50 * 100, // ₹50 in paise
+            amount: PAYMENT_AMOUNT_INR * 100,
             currency: "INR",
-            receipt: "receipt_" + Date.now()
+            receipt: `resume_${Date.now()}`,
+            notes: {
+                email,
+                purpose: 'premium_resume'
+            }
         };
 
         const order = await razorpay.orders.create(options);
-        res.json(order);
+        res.json({
+            id: order.id,
+            amount: order.amount,
+            currency: order.currency,
+            receipt: order.receipt
+        });
     } catch (error) {
         console.error("Error creating Razorpay order:", error);
-        res.status(500).json({ error: "Failed to create order" });
+        res.status(500).json({ error: error.message || "Failed to create order" });
     }
 });
 
@@ -74,11 +95,18 @@ router.post('/create-order', async (req, res) => {
 router.post('/verify-and-generate', async (req, res) => {
     try {
         const { email, razorpay_order_id, razorpay_payment_id, razorpay_signature, resumeData } = req.body;
+        if (!email || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !resumeData) {
+            return res.status(400).json({ error: "Missing payment verification details" });
+        }
+
+        if (!RAZORPAY_KEY_SECRET) {
+            return res.status(500).json({ error: "Razorpay secret is not configured" });
+        }
 
         // Verify Signature
         const sign = razorpay_order_id + "|" + razorpay_payment_id;
         const expectedSign = crypto
-            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .createHmac("sha256", RAZORPAY_KEY_SECRET)
             .update(sign.toString())
             .digest("hex");
 
@@ -210,7 +238,7 @@ router.post('/verify-and-generate', async (req, res) => {
         // Wait for PDF to finish writing
         await new Promise((resolve) => writeStream.on('finish', resolve));
 
-        const pdfUrl = `http://localhost:5001/uploads/${filename}`;
+        const pdfUrl = `${serverBaseUrl}/uploads/${filename}`;
 
         // Save to Database
         let resumeRecord = await Resume.findOne({ email });

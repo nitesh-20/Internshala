@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { selectuser } from '@/Feature/Userslice';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import Script from 'next/script';
 import { CheckCircle2, ChevronRight, Save, Shield, Download } from 'lucide-react';
 
 declare global {
@@ -37,11 +38,17 @@ const ResumeBuilder = () => {
 
   // General States
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState("");
   const [expireTimer, setExpireTimer] = useState(0);
   const [isPaid, setIsPaid] = useState(false);
   const [pdfUrl, setPdfUrl] = useState('');
+  const [isRazorpayReady, setIsRazorpayReady] = useState(false);
+
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001';
+  const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
   const steps = [
     { id: 1, name: 'Personal' },
@@ -72,7 +79,7 @@ const ResumeBuilder = () => {
 
   const fetchDraft = async () => {
     try {
-      const res = await axios.get(`http://localhost:5001/api/resume/${user.email}`);
+      const res = await axios.get(`${apiBaseUrl}/api/resume/${user.email}`);
       const data = res.data;
       if (data) {
         if (data.personalInfo) setPersonalInfo(data.personalInfo);
@@ -104,8 +111,8 @@ const ResumeBuilder = () => {
   const saveDraft = async () => {
     if (!user) return;
     try {
-      setIsLoading(true);
-      await axios.post("http://localhost:5001/api/resume/draft", {
+      setIsSavingDraft(true);
+      await axios.post(`${apiBaseUrl}/api/resume/draft`, {
         email: user.email,
         resumeData: getFullResumeData()
       });
@@ -113,7 +120,7 @@ const ResumeBuilder = () => {
     } catch (error) {
       toast.error("Failed to save draft");
     } finally {
-      setIsLoading(false);
+      setIsSavingDraft(false);
     }
   };
 
@@ -161,9 +168,9 @@ const ResumeBuilder = () => {
 
     setIsLoading(true);
     try {
-      await axios.post("http://localhost:5001/api/resume/draft", { email: user.email, resumeData: getFullResumeData() }); // Ensure everything is saved
+      await axios.post(`${apiBaseUrl}/api/resume/draft`, { email: user.email, resumeData: getFullResumeData() });
       
-      const res = await axios.post("http://localhost:5001/api/language/request-otp", { 
+      const res = await axios.post(`${apiBaseUrl}/api/language/request-otp`, { 
         email: user.email, 
         purpose: 'RESUME_PAYMENT' 
       });
@@ -181,12 +188,12 @@ const ResumeBuilder = () => {
     if (!otp) return;
     setIsLoading(true);
     try {
-      await axios.post("http://localhost:5001/api/language/verify-otp", { 
+      await axios.post(`${apiBaseUrl}/api/language/verify-otp`, { 
         email: user.email, otp, purpose: 'RESUME_PAYMENT' 
       });
       setShowOtpModal(false);
       setOtp("");
-      initiateRazorpay();
+      await initiateRazorpay();
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Invalid OTP");
       setIsLoading(false);
@@ -195,13 +202,22 @@ const ResumeBuilder = () => {
 
   const initiateRazorpay = async () => {
     try {
-      const orderRes = await axios.post("http://localhost:5001/api/resume/create-order", { email: user.email });
+      if (!razorpayKeyId) {
+        throw new Error("Razorpay public key is missing. Add NEXT_PUBLIC_RAZORPAY_KEY_ID to the frontend env file.");
+      }
+
+      if (!isRazorpayReady || !window.Razorpay) {
+        throw new Error("Razorpay checkout is still loading. Please try again in a moment.");
+      }
+
+      setIsCheckoutLoading(true);
+      const orderRes = await axios.post(`${apiBaseUrl}/api/resume/create-order`, { email: user.email });
       const order = orderRes.data;
 
       const handlerFn = async function (response: any) {
         toast.info("Payment verified, generating professional ATS PDF...");
         try {
-          const verifyRes = await axios.post("http://localhost:5001/api/resume/verify-and-generate", {
+          const verifyRes = await axios.post(`${apiBaseUrl}/api/resume/verify-and-generate`, {
             email: user.email,
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
@@ -212,12 +228,15 @@ const ResumeBuilder = () => {
           setPdfUrl(verifyRes.data.pdfUrl);
           toast.success("Resume generated successfully!");
         } catch (err: any) {
-          toast.error("Failed to generate resume after payment.");
+          toast.error(err.response?.data?.error || "Failed to verify payment and generate resume.");
+        } finally {
+          setIsLoading(false);
+          setIsCheckoutLoading(false);
         }
       };
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
+        key: razorpayKeyId,
         amount: order.amount,
         currency: order.currency,
         name: "Internshala Premium",
@@ -225,18 +244,31 @@ const ResumeBuilder = () => {
         order_id: order.id,
         handler: handlerFn,
         prefill: { name: user.name, email: user.email },
+        modal: {
+          ondismiss: function () {
+            setIsLoading(false);
+            setIsCheckoutLoading(false);
+            toast.info("Payment checkout closed.");
+          }
+        },
         theme: { color: "#2563EB" }
       };
 
       const rzp = new window.Razorpay(options);
       rzp.on('payment.failed', function (response: any) {
-        toast.error("Payment failed.");
+        setIsLoading(false);
+        setIsCheckoutLoading(false);
+        toast.error(response.error?.description || "Payment failed.");
       });
       rzp.open();
-    } catch (error) {
-      toast.error("Failed to initiate payment");
-    } finally {
+    } catch (error: any) {
+      toast.error(error.message || "Failed to initiate payment");
       setIsLoading(false);
+      setIsCheckoutLoading(false);
+    } finally {
+      if (!window.Razorpay) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -256,13 +288,17 @@ const ResumeBuilder = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+        onLoad={() => setIsRazorpayReady(true)}
+      />
       
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Premium Resume Builder</h1>
-          <button onClick={saveDraft} className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 bg-blue-50 px-4 py-2 rounded-lg">
-            <Save size={18} /> <span>Save Draft</span>
+          <button onClick={saveDraft} disabled={isSavingDraft || isLoading || isCheckoutLoading} className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 bg-blue-50 px-4 py-2 rounded-lg disabled:opacity-50">
+            <Save size={18} /> <span>{isSavingDraft ? 'Saving...' : 'Save Draft'}</span>
           </button>
         </div>
 
@@ -427,11 +463,12 @@ const ResumeBuilder = () => {
                       
                       <button 
                         onClick={handleGenerateClick}
-                        disabled={isLoading}
+                        disabled={isLoading || isCheckoutLoading || !isRazorpayReady}
                         className="w-full max-w-sm flex justify-center items-center py-4 px-6 border border-transparent rounded-xl shadow-lg text-lg font-bold text-blue-900 bg-yellow-400 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 transition-all transform hover:scale-105"
                       >
-                        {isLoading ? 'Processing...' : 'Pay ₹50 & Generate Resume'}
+                        {isCheckoutLoading ? 'Opening Razorpay...' : isLoading ? 'Processing...' : 'Pay ₹50 & Generate Resume'}
                       </button>
+                      {!isRazorpayReady && <p className="text-xs text-yellow-200 mt-3">Secure checkout is loading...</p>}
                       <p className="text-xs text-gray-400 mt-4 flex items-center"><Shield size={12} className="mr-1"/> Secured by Razorpay & Internshala Auth</p>
                     </div>
 
@@ -458,7 +495,7 @@ const ResumeBuilder = () => {
                     Back
                   </button>
                   {step < steps.length && (
-                    <button onClick={handleNext} disabled={isLoading} className="flex items-center px-8 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md transition-colors disabled:opacity-50">
+                    <button onClick={handleNext} disabled={isLoading || isSavingDraft || isCheckoutLoading} className="flex items-center px-8 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md transition-colors disabled:opacity-50">
                       Continue <ChevronRight size={18} className="ml-2" />
                     </button>
                   )}
@@ -494,14 +531,14 @@ const ResumeBuilder = () => {
             <div className="flex space-x-3">
               <button 
                 onClick={() => { setShowOtpModal(false); setOtp(""); }}
-                disabled={isLoading}
+                disabled={isLoading || isCheckoutLoading}
                 className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button 
                 onClick={verifyOtpAndPay}
-                disabled={isLoading || otp.length !== 6 || expireTimer === 0}
+                disabled={isLoading || isCheckoutLoading || otp.length !== 6 || expireTimer === 0}
                 className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-50 flex justify-center items-center"
               >
                 {isLoading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span> : 'Verify & Pay'}
