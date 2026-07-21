@@ -4,6 +4,7 @@ const app = express();
 const cors = require("cors");
 const { connect } = require("./db");
 const router = require("./Routes/index");
+const languageRouter = require("./Routes/language");
 const port = 5001;
 
 app.use(cors());
@@ -15,6 +16,7 @@ app.get("/", (req, res) => {
   res.send("hello this is internshala backend");
 });
 app.use("/api", router);
+app.use("/api/language", languageRouter);
 connect();
 app.use((req, res, next) => {
   req.header("Access-Control-Allow-Origin", "*");

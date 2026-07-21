@@ -1,6 +1,7 @@
 import Footer from "@/Components/Fotter";
 import Navbar from "@/Components/Navbar";
 import "@/styles/globals.css";
+import "../i18n";
 import type { AppProps } from "next/app";
 import { store } from "../store/store";
 import { Provider, useDispatch } from "react-redux";
