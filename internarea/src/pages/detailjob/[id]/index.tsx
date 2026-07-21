@@ -136,6 +136,15 @@ const index = () => {
   const [availability, setAvailability] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
+  const [userResume, setUserResume] = useState<any>(null);
+
+  useEffect(() => {
+    if (user?.email) {
+      axios.get(`http://localhost:5001/api/resume/${user.email}`)
+        .then(res => setUserResume(res.data))
+        .catch(err => console.log("No resume found"));
+    }
+  }, [user]);
   if (!jobdata) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -160,6 +169,7 @@ const index = () => {
         user: user,
         Application: id,
         availability,
+        resumeUrl: userResume && userResume.isPaid ? userResume.pdfUrl : null
       };
       await axios.post(
         "http://localhost:5001/api/application",
@@ -276,9 +286,19 @@ const index = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Your Resume
                 </h3>
-                <p className="text-gray-600">
-                  Your current resume will be submitted with the application
-                </p>
+                {userResume && userResume.isPaid ? (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-center space-x-2">
+                    <Book className="w-5 h-5" />
+                    <span>Your <strong>Premium Resume</strong> will automatically be attached to this application!</span>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700">
+                    <p className="mb-2">Your default profile resume will be submitted.</p>
+                    <Link href="/resume" className="text-sm font-semibold underline hover:text-blue-800">
+                      Create an ATS-friendly Premium Resume (₹50) to stand out!
+                    </Link>
+                  </div>
+                )}
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
