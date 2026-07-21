@@ -15,6 +15,18 @@ interface User {
   photo: string;
 }
 
+type LoginActivityItem = {
+  id: string;
+  browser: string;
+  browserVersion: string;
+  operatingSystem: string;
+  deviceType: string;
+  ipAddress: string;
+  loginMethod: string;
+  loginStatus: string;
+  createdAt: string;
+};
+
 const index = () => {
   const { t } = useTranslation();
   const user = useSelector(selectuser);
@@ -23,6 +35,10 @@ const index = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [resumeData, setResumeData] = useState<any>(null);
   const [friendCount, setFriendCount] = useState(0);
+  const [loginHistory, setLoginHistory] = useState<LoginActivityItem[]>([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyTotalPages, setHistoryTotalPages] = useState(1);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const apiBaseUrl = getApiBaseUrl();
 
   useEffect(() => {
@@ -40,6 +56,23 @@ const index = () => {
       .then((res) => setFriendCount(res.data.user?.friendCount || res.data.friends?.length || 0))
       .catch(() => setFriendCount(0));
   }, [apiBaseUrl]);
+
+  useEffect(() => {
+    const headers = getAuthHeaders();
+    if (!headers.Authorization) return;
+
+    setIsHistoryLoading(true);
+    axios
+      .get(`${apiBaseUrl}/api/auth/login-history?page=${historyPage}&limit=10`, {
+        headers,
+      })
+      .then((res) => {
+        setLoginHistory(res.data.activities || []);
+        setHistoryTotalPages(res.data.pagination?.totalPages || 1);
+      })
+      .catch(() => setLoginHistory([]))
+      .finally(() => setIsHistoryLoading(false));
+  }, [apiBaseUrl, historyPage]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -163,6 +196,98 @@ const index = () => {
                   {t("view_applications")}
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Link>
+              </div>
+
+              <div className="pt-6">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-xl font-semibold text-slate-900">Login History</h2>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Latest login activity across Google and email/password sign-ins.
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
+                      Page {historyPage} of {historyTotalPages}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    {isHistoryLoading ? (
+                      <div className="px-4 py-10 text-center text-sm text-slate-500">
+                        Loading login history...
+                      </div>
+                    ) : loginHistory.length === 0 ? (
+                      <div className="px-4 py-10 text-center text-sm text-slate-500">
+                        No login history available yet.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-200 text-sm">
+                          <thead className="bg-slate-50 text-left text-slate-500">
+                            <tr>
+                              <th className="px-4 py-3 font-medium">Date & Time</th>
+                              <th className="px-4 py-3 font-medium">Browser</th>
+                              <th className="px-4 py-3 font-medium">OS</th>
+                              <th className="px-4 py-3 font-medium">Device</th>
+                              <th className="px-4 py-3 font-medium">IP Address</th>
+                              <th className="px-4 py-3 font-medium">Method</th>
+                              <th className="px-4 py-3 font-medium">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-slate-700">
+                            {loginHistory.map((entry) => (
+                              <tr key={entry.id}>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  {new Date(entry.createdAt).toLocaleString()}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  {[entry.browser, entry.browserVersion].filter(Boolean).join(" ")}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">{entry.operatingSystem || "Unknown"}</td>
+                                <td className="px-4 py-3 whitespace-nowrap">{entry.deviceType}</td>
+                                <td className="px-4 py-3 whitespace-nowrap">{entry.ipAddress || "Unknown"}</td>
+                                <td className="px-4 py-3 whitespace-nowrap">{entry.loginMethod}</td>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <span
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                      entry.loginStatus === "Success"
+                                        ? "bg-emerald-100 text-emerald-700"
+                                        : "bg-rose-100 text-rose-700"
+                                    }`}
+                                  >
+                                    {entry.loginStatus}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-end gap-3">
+                    <button
+                      onClick={() => setHistoryPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={historyPage === 1 || isHistoryLoading}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setHistoryPage((prev) =>
+                          historyTotalPages > 0 ? Math.min(prev + 1, historyTotalPages) : prev
+                        )
+                      }
+                      disabled={historyPage >= historyTotalPages || isHistoryLoading}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

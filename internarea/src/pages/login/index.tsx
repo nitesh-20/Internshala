@@ -1,10 +1,11 @@
 import AuthLayout from "@/Components/AuthLayout";
+import LoginOtpModal from "@/Components/LoginOtpModal";
 import { login } from "@/Feature/Userslice";
 import { setStoredAuth } from "@/lib/authStorage";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 
@@ -13,10 +14,26 @@ const LoginPage = () => {
   const router = useRouter();
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001";
   const [isLoading, setIsLoading] = useState(false);
+  const [isOtpLoading, setIsOtpLoading] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [pendingToken, setPendingToken] = useState("");
+  const [pendingUser, setPendingUser] = useState<any>(null);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [expireTimer, setExpireTimer] = useState(300);
   const [formData, setFormData] = useState({
     identifier: "",
     password: "",
   });
+
+  useEffect(() => {
+    if (!showOtpModal) return;
+    const interval = setInterval(() => {
+      setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
+      setExpireTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showOtpModal]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -33,6 +50,16 @@ const LoginPage = () => {
     try {
       setIsLoading(true);
       const res = await axios.post(`${apiBaseUrl}/api/auth/login`, formData);
+      if (res.data.requiresOtp) {
+        setPendingToken(res.data.pendingToken);
+        setPendingUser(res.data.user);
+        setResendTimer(res.data.resendAfterSeconds || 60);
+        setExpireTimer(res.data.expiresInSeconds || 300);
+        setOtp("");
+        setShowOtpModal(true);
+        toast.info(res.data.message || "OTP sent to your registered email.");
+        return;
+      }
       const authUser = { ...res.data.user, token: res.data.token, authProvider: "local" };
       setStoredAuth(authUser);
       dispatch(login(authUser));
@@ -45,30 +72,93 @@ const LoginPage = () => {
     }
   };
 
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 6 || !pendingToken) return;
+
+    try {
+      setIsOtpLoading(true);
+      const res = await axios.post(`${apiBaseUrl}/api/auth/login-otp/verify`, {
+        pendingToken,
+        otp,
+      });
+      const authUser = { ...res.data.user, token: res.data.token, authProvider: "local" };
+      setStoredAuth(authUser);
+      dispatch(login(authUser));
+      setShowOtpModal(false);
+      setPendingToken("");
+      setPendingUser(null);
+      setOtp("");
+      toast.success("Logged in successfully.");
+      await router.push("/");
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Failed to verify login OTP.");
+    } finally {
+      setIsOtpLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!pendingToken) return;
+
+    try {
+      setIsOtpLoading(true);
+      const res = await axios.post(`${apiBaseUrl}/api/auth/login-otp/send`, {
+        pendingToken,
+      });
+      setResendTimer(res.data.resendAfterSeconds || 60);
+      setExpireTimer(res.data.expiresInSeconds || 300);
+      toast.success(res.data.message || "OTP sent to your registered email.");
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Failed to resend OTP.");
+    } finally {
+      setIsOtpLoading(false);
+    }
+  };
+
   return (
-    <AuthLayout
-      title="Sign in to your account"
-      subtitle="Use your registered email or phone number with your password. Google sign-in continues to work from the homepage."
-      footer={
-        <div className="flex flex-wrap items-center gap-3">
-          <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">
-            Create account
-          </Link>
-          <span className="text-slate-300">|</span>
-          <Link href="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-700">
-            Forgot password?
-          </Link>
-        </div>
-      }
-    >
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <input name="identifier" value={formData.identifier} onChange={handleChange} placeholder="Email address or phone number" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
-        <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Password" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
-        <button type="submit" disabled={isLoading} className="w-full rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50">
-          {isLoading ? "Signing in..." : "Sign in"}
-        </button>
-      </form>
-    </AuthLayout>
+    <>
+      <AuthLayout
+        title="Sign in to your account"
+        subtitle="Use your registered email or phone number with your password. Google sign-in continues to work from the homepage."
+        footer={
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">
+              Create account
+            </Link>
+            <span className="text-slate-300">|</span>
+            <Link href="/forgot-password" className="font-semibold text-blue-600 hover:text-blue-700">
+              Forgot password?
+            </Link>
+          </div>
+        }
+      >
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <input name="identifier" value={formData.identifier} onChange={handleChange} placeholder="Email address or phone number" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
+          <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Password" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
+          <button type="submit" disabled={isLoading} className="w-full rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50">
+            {isLoading ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
+      </AuthLayout>
+
+      <LoginOtpModal
+        isOpen={showOtpModal}
+        otp={otp}
+        onOtpChange={setOtp}
+        onClose={() => {
+          setShowOtpModal(false);
+          setPendingToken("");
+          setPendingUser(null);
+          setOtp("");
+        }}
+        onVerify={handleVerifyOtp}
+        onResend={handleResendOtp}
+        isLoading={isOtpLoading}
+        resendTimer={resendTimer}
+        expireTimer={expireTimer}
+        email={pendingUser?.email}
+      />
+    </>
   );
 };
 

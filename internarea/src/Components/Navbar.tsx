@@ -10,6 +10,7 @@ import { login, logout, selectuser } from "@/Feature/Userslice";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import { clearStoredAuth, setStoredAuth } from "@/lib/authStorage";
+import LoginOtpModal from "@/Components/LoginOtpModal";
 
 interface User {
   name: string;
@@ -27,7 +28,14 @@ const Navbar = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState("");
   const [pendingLang, setPendingLang] = useState("");
+  const [showLoginOtpModal, setShowLoginOtpModal] = useState(false);
+  const [loginOtp, setLoginOtp] = useState("");
+  const [loginPendingToken, setLoginPendingToken] = useState("");
+  const [loginPendingUser, setLoginPendingUser] = useState<any>(null);
+  const [loginResendTimer, setLoginResendTimer] = useState(0);
+  const [loginExpireTimer, setLoginExpireTimer] = useState(300);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoginOtpLoading, setIsLoginOtpLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [expireTimer, setExpireTimer] = useState(300);
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001";
@@ -43,6 +51,17 @@ const Navbar = () => {
     }
     return () => clearInterval(interval);
   }, [showOtpModal]);
+
+  React.useEffect(() => {
+    let interval: any;
+    if (showLoginOtpModal) {
+      interval = setInterval(() => {
+        setLoginResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
+        setLoginExpireTimer((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [showLoginOtpModal]);
 
   const requestOtp = async (email: string, languageCode: string) => {
     setIsLoading(true);
@@ -83,6 +102,24 @@ const Navbar = () => {
           photo: res.user.photoURL,
           phoneNumber: res.user.phoneNumber,
         });
+        if (syncRes.data.requiresOtp) {
+          setLoginPendingToken(syncRes.data.pendingToken);
+          setLoginPendingUser({
+            uid: res.user.uid,
+            email: res.user.email || "",
+            name: res.user.displayName || "",
+            photo: res.user.photoURL || "",
+            phoneNumber: res.user.phoneNumber || "",
+            authProvider: "google",
+            id: syncRes.data.user?.id,
+          });
+          setLoginOtp("");
+          setLoginResendTimer(syncRes.data.resendAfterSeconds || 60);
+          setLoginExpireTimer(syncRes.data.expiresInSeconds || 300);
+          setShowLoginOtpModal(true);
+          toast.info(syncRes.data.message || "OTP sent to your registered email.");
+          return;
+        }
         const authUser = {
           uid: res.user.uid,
           id: syncRes.data.user?.id,
@@ -111,6 +148,55 @@ const Navbar = () => {
     } catch (error: any) {
       console.error(error);
       toast.error("Login failed: " + (error.code || error.message));
+    }
+  };
+
+  const verifyLoginOtp = async () => {
+    if (loginOtp.length !== 6 || !loginPendingToken) return;
+
+    try {
+      setIsLoginOtpLoading(true);
+      const res = await axios.post(`${apiBaseUrl}/api/auth/login-otp/verify`, {
+        pendingToken: loginPendingToken,
+        otp: loginOtp,
+      });
+
+      const authUser = {
+        ...loginPendingUser,
+        ...res.data.user,
+        token: res.data.token,
+        authProvider: "google",
+      };
+
+      setStoredAuth(authUser);
+      dispatch(login(authUser));
+      setShowLoginOtpModal(false);
+      setLoginPendingToken("");
+      setLoginPendingUser(null);
+      setLoginOtp("");
+      toast.success("Logged in successfully.");
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Failed to verify login OTP.");
+    } finally {
+      setIsLoginOtpLoading(false);
+    }
+  };
+
+  const resendLoginOtp = async () => {
+    if (!loginPendingToken) return;
+
+    try {
+      setIsLoginOtpLoading(true);
+      const res = await axios.post(`${apiBaseUrl}/api/auth/login-otp/send`, {
+        pendingToken: loginPendingToken,
+      });
+      setLoginResendTimer(res.data.resendAfterSeconds || 60);
+      setLoginExpireTimer(res.data.expiresInSeconds || 300);
+      toast.success(res.data.message || "OTP sent to your registered email.");
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Failed to resend login OTP.");
+    } finally {
+      setIsLoginOtpLoading(false);
     }
   };
 
@@ -356,6 +442,24 @@ const Navbar = () => {
           </div>
         </div>
       )}
+
+      <LoginOtpModal
+        isOpen={showLoginOtpModal}
+        otp={loginOtp}
+        onOtpChange={setLoginOtp}
+        onClose={() => {
+          setShowLoginOtpModal(false);
+          setLoginPendingToken("");
+          setLoginPendingUser(null);
+          setLoginOtp("");
+        }}
+        onVerify={verifyLoginOtp}
+        onResend={resendLoginOtp}
+        isLoading={isLoginOtpLoading}
+        resendTimer={loginResendTimer}
+        expireTimer={loginExpireTimer}
+        email={loginPendingUser?.email}
+      />
     </div>
   );
 };
