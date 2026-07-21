@@ -107,20 +107,20 @@ router.post("/create-order", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid plan selected." });
     }
 
-    // Check IST time
-    const nowIST = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-    const istDate = new Date(nowIST);
-    const hours = istDate.getHours();
+    // Check IST time (Temporarily disabled for testing)
+    // const nowIST = new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+    // const istDate = new Date(nowIST);
+    // const hours = istDate.getHours();
 
-    if (hours < 10 || hours >= 11) {
-      return res.status(403).json({ error: "Payments are allowed only between 10:00 AM and 11:00 AM IST." });
-    }
+    // if (hours < 10 || hours >= 11) {
+    //   return res.status(403).json({ error: "Payments are allowed only between 10:00 AM and 11:00 AM IST." });
+    // }
 
     const razorpay = getRazorpayClient();
     const options = {
       amount: PLANS[plan].price * 100, // in paise
       currency: "INR",
-      receipt: `sub_${req.authUser._id}_${Date.now()}`,
+      receipt: `sub_${req.authUser._id.toString().slice(-6)}_${Date.now()}`,
       notes: {
         userId: req.authUser._id.toString(),
         plan,
