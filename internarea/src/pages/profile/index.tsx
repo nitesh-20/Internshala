@@ -1,7 +1,7 @@
 import { login, selectuser } from "@/Feature/Userslice";
 import { ExternalLink, Mail, User, Camera } from "lucide-react";
 import Link from "next/link";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { updateProfile } from "firebase/auth";
