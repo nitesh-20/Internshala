@@ -16,5 +16,16 @@
   "companies_hiring": "companies hiring",
   "new_openings": "new openings everyday",
   "active_students": "active students",
-  "learners": "learners"
+  "learners": "learners",
+  "filters": "Filters",
+  "clear_all": "Clear all",
+  "category": "Category",
+  "location": "Location",
+  "experience": "Experience",
+  "work_from_home": "Work from home",
+  "part_time": "Part-time",
+  "monthly_stipend": "Monthly Stipend (₹)",
+  "annual_salary": "Annual Salary (₹ in lakhs)",
+  "jobs_found": "Jobs found",
+  "internships_found": "Internships found"
 }

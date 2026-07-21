@@ -16,5 +16,16 @@
   "companies_hiring": "कंपनियां भर्ती कर रही हैं",
   "new_openings": "हर दिन नए अवसर",
   "active_students": "सक्रिय छात्र",
-  "learners": "शिक्षार्थी"
+  "learners": "शिक्षार्थी",
+  "filters": "फ़िल्टर",
+  "clear_all": "सभी हटाएं",
+  "category": "श्रेणी",
+  "location": "स्थान",
+  "experience": "अनुभव",
+  "work_from_home": "घर से काम",
+  "part_time": "अंशकालिक",
+  "monthly_stipend": "मासिक वजीफा (₹)",
+  "annual_salary": "वार्षिक वेतन (₹ लाखों में)",
+  "jobs_found": "नौकरियां मिलीं",
+  "internships_found": "इंटर्नशिप मिलीं"
 }

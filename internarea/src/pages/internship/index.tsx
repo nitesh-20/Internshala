@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 // const internshipData = [
 //   {
 //     _id: "1",
@@ -45,6 +46,7 @@ import React, { useEffect, useState } from "react";
 //   },
 // ];
 const index = () => {
+  const { t } = useTranslation();
   const [filteredInternships, setfilteredInternships] = useState<any>([]);
   const [isFiltervisible, setisFiltervisible] = useState(false);
   const [filter, setfilters] = useState({
@@ -105,20 +107,20 @@ const index = () => {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-2">
                 <Filter className="h-5 w-5 text-blue-600" />
-                <span className="font-medium text-black">Filters</span>
+                <span className="font-medium text-black">{t("filters")}</span>
               </div>
               <button
                 onClick={clearFilters}
                 className="text-sm text-blue-600 hover:text-blue-700"
               >
-                Clear all
+                {t("clear_all")}
               </button>
             </div>
             <div className="space-y-6">
               {/* Profile/Category Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                  {t("category")}
                 </label>
                 <input
                   type="text"
@@ -132,7 +134,7 @@ const index = () => {
               {/* Location Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
+                  {t("location")}
                 </label>
                 <input
                   type="text"
@@ -154,7 +156,7 @@ const index = () => {
                     onChange={handlefilterchange}
                     className="h-4 w-4 text-blue-600 rounded "
                   />
-                  <span className="text-gray-700">Work from home</span>
+                  <span className="text-gray-700">{t("work_from_home")}</span>
                 </label>
                 <label className="flex items-center space-x-2">
                   <input
@@ -164,14 +166,14 @@ const index = () => {
                     onChange={handlefilterchange}
                     className="h-4 w-4 text-blue-600 rounded"
                   />
-                  <span className="text-gray-700">Part-time</span>
+                  <span className="text-gray-700">{t("part_time")}</span>
                 </label>
               </div>
 
               {/* Stipend Range */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Monthly Stipend (₹)
+                  {t("monthly_stipend")}
                 </label>
                 <input
                   type="range"
@@ -202,7 +204,7 @@ const index = () => {
             </div>
             <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
               <p className="text-center font-medium text-black">
-                {filteredInternships.length} Internships found
+                {filteredInternships.length} {t("internships_found")}
               </p>
             </div>
             <div className="space-y-4">
@@ -213,7 +215,7 @@ const index = () => {
                 >
                   <div className="flex items-center space-x-2 text-blue-600 mb-4">
                     <ArrowUpRight className="h-5 w-5" />
-                    <span className="font-medium">Actively Hiring</span>
+                    <span className="font-medium">{t("actively_hiring")}</span>
                   </div>
                   <h2 className="text-xl font-bold text-gray-900 mb-2">
                     {internship.title}
@@ -257,7 +259,7 @@ const index = () => {
                       href={`/detailiternship/${internship._id}`}
                       className="text-blue-600 hover:text-blue-700 font-medium"
                     >
-                      View Details
+                      {t("view_details")}
                     </Link>
                   </div>
                 </div>
@@ -271,7 +273,7 @@ const index = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
           <div className="bg-white h-full w-full max-w-sm ml-auto p-6 overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold">Filters</h2>
+              <h2 className="text-lg font-bold">{t("filters")}</h2>
               <button
                 onClick={() => setisFiltervisible(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -283,7 +285,7 @@ const index = () => {
               {/* Profile/Category Filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                  {t("category")}
                 </label>
                 <input
                   type="text"
@@ -319,7 +321,7 @@ const index = () => {
                     onChange={handlefilterchange}
                     className="h-4 w-4 text-blue-600 rounded "
                   />
-                  <span className="text-gray-700">Work from home</span>
+                  <span className="text-gray-700">{t("work_from_home")}</span>
                 </label>
                 <label className="flex items-center space-x-2">
                   <input
@@ -329,7 +331,7 @@ const index = () => {
                     onChange={handlefilterchange}
                     className="h-4 w-4 text-blue-600 rounded"
                   />
-                  <span className="text-gray-700">Part-time</span>
+                  <span className="text-gray-700">{t("part_time")}</span>
                 </label>
               </div>
 
