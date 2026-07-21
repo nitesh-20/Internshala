@@ -13,8 +13,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 export default function SvgSlider() {
+  const { t } = useTranslation();
   const categories = [
     "Big Brands",
     "Work From Home",
@@ -108,10 +110,10 @@ export default function SvgSlider() {
   ];
 
   const stats = [
-    { number: "300K+", label: "companies hiring" },
-    { number: "10K+", label: "new openings everyday" },
-    { number: "21Mn+", label: "active students" },
-    { number: "600K+", label: "learners" },
+    { number: "300K+", label: t("companies_hiring") },
+    { number: "10K+", label: t("new_openings") },
+    { number: "21Mn+", label: t("active_students") },
+    { number: "600K+", label: t("learners") },
   ];
   const [internships, setinternship] = useState<any>([]);
   const [jobs, setjob] = useState<any>([]);
@@ -142,9 +144,9 @@ export default function SvgSlider() {
       {/* hero section */}
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Make your dream career a reality
+          {t("make_dream_career")}
         </h1>
-        <p className="text-xl text-gray-600">Trending on InternArea 🔥</p>
+        <p className="text-xl text-gray-600">{t("trending_internarea")}</p>
       </div>
       {/* Swiper section */}
       <div className="mb-16">
@@ -244,10 +246,10 @@ export default function SvgSlider() {
       {/* Category section */}
       <div className="mb-12">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          Latest internships on Intern Area
+          {t("latest_internships")}
         </h2>
         <div className="flex flex-wrap gap-4">
-          <span className="text-gray-700 font-medium">POPULAR CATEGORIES:</span>
+          <span className="text-gray-700 font-medium">{t("popular_categories")}</span>
           {categories.map((category) => (
             <button
               key={category}
@@ -300,7 +302,7 @@ export default function SvgSlider() {
                 href={`/detailiternship/${internship._id}`}
                 className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
               >
-                View details
+                {t("view_details")}
                 <ChevronRight size={16} />
               </Link>
             </div>
@@ -309,7 +311,7 @@ export default function SvgSlider() {
       </div>
       {/* Jobs grid   */}
       <div className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Latest Jobs</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">{t("latest_jobs")}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {filteredJobs.map((job: any, index: any) => (
             <div
@@ -346,7 +348,7 @@ export default function SvgSlider() {
                   href={`/detailInternship?q=${job._id}`}
                   className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
                 >
-                  View details
+                  {t("view_details")}
                   <ChevronRight size={16} />
                 </Link>
               </div>

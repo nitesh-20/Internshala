@@ -1,3 +1,20 @@
 {
-  "welcome": "Welcome to Internshala"
+  "welcome": "Welcome to Internshala",
+  "internships": "Internships",
+  "jobs": "Jobs",
+  "search_opportunities": "Search opportunities...",
+  "continue_with_google": "Continue with Google",
+  "admin": "Admin",
+  "logout": "Logout",
+  "make_dream_career": "Make your dream career a reality",
+  "trending_internarea": "Trending on InternArea 🔥",
+  "latest_internships": "Latest internships on Intern Area",
+  "popular_categories": "POPULAR CATEGORIES:",
+  "actively_hiring": "Actively Hiring",
+  "view_details": "View details",
+  "latest_jobs": "Latest Jobs",
+  "companies_hiring": "companies hiring",
+  "new_openings": "new openings everyday",
+  "active_students": "active students",
+  "learners": "learners"
 }

@@ -1,3 +1,20 @@
 {
-  "welcome": "इंटर्नशाला में आपका स्वागत है"
+  "welcome": "इंटर्नशाला में आपका स्वागत है",
+  "internships": "इंटर्नशिप",
+  "jobs": "नौकरियां",
+  "search_opportunities": "अवसर खोजें...",
+  "continue_with_google": "Google के साथ जारी रखें",
+  "admin": "व्यवस्थापक",
+  "logout": "लॉग आउट",
+  "make_dream_career": "अपने सपनों का करियर हकीकत बनाएं",
+  "trending_internarea": "InternArea पर ट्रेंडिंग 🔥",
+  "latest_internships": "Intern Area पर नवीनतम इंटर्नशिप",
+  "popular_categories": "लोकप्रिय श्रेणियां:",
+  "actively_hiring": "सक्रिय रूप से भर्ती",
+  "view_details": "विवरण देखें",
+  "latest_jobs": "नवीनतम नौकरियां",
+  "companies_hiring": "कंपनियां भर्ती कर रही हैं",
+  "new_openings": "हर दिन नए अवसर",
+  "active_students": "सक्रिय छात्र",
+  "learners": "शिक्षार्थी"
 }
