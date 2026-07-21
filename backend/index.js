@@ -15,6 +15,29 @@ app.use(express.json());
 app.get("/", (req, res) => {
   res.send("hello this is internshala backend");
 });
+const multer = require("multer");
+const path = require("path");
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage: storage });
+
+app.post("/api/upload", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+  const fileUrl = `http://localhost:5001/uploads/${req.file.filename}`;
+  res.json({ url: fileUrl });
+});
+
 app.use("/api", router);
 app.use("/api/language", languageRouter);
 connect();
