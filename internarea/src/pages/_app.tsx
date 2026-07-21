@@ -41,17 +41,7 @@ export default function App({ Component, pageProps }: AppProps) {
             dispatch(login(latestStoredUser));
             return;
           }
-
-          dispatch(
-            login({
-              uid: authuser.uid,
-              photo: authuser.photoURL || "",
-              name: authuser.displayName || "",
-              email: authuser.email || "",
-              phoneNumber: authuser.phoneNumber || "",
-              authProvider: "google",
-            })
-          );
+          dispatch(logout());
         } else {
           const latestStoredUser = getStoredAuth();
           if (latestStoredUser?.token) {

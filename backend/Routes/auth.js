@@ -449,14 +449,12 @@ router.post("/login-otp/verify", loginOtpLimiter, async (req, res) => {
     if (!isMatch) {
       validOtp.attempts += 1;
       await validOtp.save();
-      if (validOtp.attempts >= 5) {
-        await saveLoginActivity({
-          userId: user._id,
-          loginStatus: "Failed",
-          loginMethod: payload.loginMethod,
-          context: payload.activityContext || {},
-        });
-      }
+      await saveLoginActivity({
+        userId: user._id,
+        loginStatus: "Failed",
+        loginMethod: payload.loginMethod,
+        context: payload.activityContext || {},
+      });
       return res.status(400).json({
         error: `Invalid OTP. ${5 - validOtp.attempts} attempts remaining.`,
       });

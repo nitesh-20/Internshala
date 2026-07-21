@@ -134,15 +134,13 @@ const Navbar = () => {
         dispatch(login(authUser));
       } catch (syncError: any) {
         console.error("Google user sync failed:", syncError);
-        const fallbackGoogleUser = {
-          uid: res.user.uid,
-          photo: res.user.photoURL || "",
-          name: res.user.displayName || "",
-          email: res.user.email || "",
-          phoneNumber: res.user.phoneNumber || "",
-          authProvider: "google",
-        };
-        dispatch(login(fallbackGoogleUser));
+        await signOut(auth);
+        clearStoredAuth();
+        dispatch(logout());
+        toast.error(
+          syncError.response?.data?.error || "Login failed while securing your account."
+        );
+        return;
       }
       toast.success("logged in successfully");
     } catch (error: any) {
