@@ -20,6 +20,10 @@ import {
   Trash2,
   Pencil,
   Send,
+  MoreHorizontal,
+  Search,
+  Check,
+  X
 } from "lucide-react";
 
 type CommunityUser = {
@@ -70,6 +74,8 @@ const CommunityPage = () => {
   const [discoverUsers, setDiscoverUsers] = useState<CommunityUser[]>([]);
   const [commentsByPost, setCommentsByPost] = useState<Record<string, CommunityComment[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [activeCommentPost, setActiveCommentPost] = useState<string | null>(null);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isPosting, setIsPosting] = useState(false);
   const [showComposer, setShowComposer] = useState(false);
@@ -82,6 +88,7 @@ const CommunityPage = () => {
   const [hasMore, setHasMore] = useState(true);
   const [authHeaders, setAuthHeaders] = useState<AuthHeaders>({});
   const [isResolvingAuth, setIsResolvingAuth] = useState(true);
+  
   const fileRef = useRef<HTMLInputElement>(null);
   const isAuthenticatedForCommunity = Boolean(authHeaders.Authorization);
   const friendCount = friends.length;
@@ -135,11 +142,7 @@ const CommunityPage = () => {
     }
   };
 
-  const loadCommunityState = async (
-    pageNumber = 1,
-    append = false,
-    headers: AuthHeaders = authHeaders
-  ) => {
+  const loadCommunityState = async (pageNumber = 1, append = false, headers: AuthHeaders = authHeaders) => {
     if (!headers.Authorization) {
       setIsLoading(false);
       return;
@@ -148,21 +151,15 @@ const CommunityPage = () => {
     try {
       const [meRes, feedRes, usersRes] = await Promise.all([
         axios.get(`${apiBaseUrl}/api/community/me`, { headers }),
-        axios.get(`${apiBaseUrl}/api/community/feed?page=${pageNumber}&limit=10`, {
-          headers,
-        }),
-        axios.get(`${apiBaseUrl}/api/community/users/search?q=${encodeURIComponent(search)}`, {
-          headers,
-        }),
+        axios.get(`${apiBaseUrl}/api/community/feed?page=${pageNumber}&limit=10`, { headers }),
+        axios.get(`${apiBaseUrl}/api/community/users/search?q=${encodeURIComponent(search)}`, { headers }),
       ]);
 
       setFriends(meRes.data.friends || []);
       setIncomingRequests(meRes.data.friendRequests || []);
       setSentRequests(meRes.data.sentRequests || []);
       setDiscoverUsers(usersRes.data.users || []);
-      setFeed((prev) =>
-        append ? [...prev, ...(feedRes.data.posts || [])] : feedRes.data.posts || []
-      );
+      setFeed((prev) => append ? [...prev, ...(feedRes.data.posts || [])] : feedRes.data.posts || []);
       setHasMore(Boolean(feedRes.data.pagination?.hasMore));
       setPage(pageNumber);
     } catch (error: any) {
@@ -174,7 +171,6 @@ const CommunityPage = () => {
 
   useEffect(() => {
     let isMounted = true;
-
     const bootstrapCommunity = async () => {
       setIsResolvingAuth(true);
       setIsLoading(true);
@@ -188,16 +184,11 @@ const CommunityPage = () => {
       }
 
       await loadCommunityState(1, false, headers);
-      if (isMounted) {
-        setIsResolvingAuth(false);
-      }
+      if (isMounted) setIsResolvingAuth(false);
     };
 
     bootstrapCommunity();
-
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, [search, user]);
 
   const uploadFiles = async (files: File[]) => {
@@ -231,21 +222,14 @@ const CommunityPage = () => {
       const payload = {
         caption,
         media: mediaUrls.length ? mediaUrls : feed.find((post) => post.id === editingPostId)?.media || [],
-        mediaType:
-          selectedFiles.length > 0
-            ? deriveMediaType(selectedFiles)
-            : feed.find((post) => post.id === editingPostId)?.mediaType || "image",
+        mediaType: selectedFiles.length > 0 ? deriveMediaType(selectedFiles) : feed.find((post) => post.id === editingPostId)?.mediaType || "image",
       };
 
       if (editingPostId) {
-        await axios.put(`${apiBaseUrl}/api/community/posts/${editingPostId}`, payload, {
-          headers: authHeaders,
-        });
+        await axios.put(`${apiBaseUrl}/api/community/posts/${editingPostId}`, payload, { headers: authHeaders });
         toast.success("Post updated successfully.");
       } else {
-        await axios.post(`${apiBaseUrl}/api/community/posts`, payload, {
-          headers: authHeaders,
-        });
+        await axios.post(`${apiBaseUrl}/api/community/posts`, payload, { headers: authHeaders });
         toast.success("Post created successfully.");
       }
 
@@ -271,13 +255,9 @@ const CommunityPage = () => {
   const toggleLike = async (post: CommunityPost) => {
     try {
       if (post.likedByCurrentUser) {
-        await axios.delete(`${apiBaseUrl}/api/community/posts/${post.id}/like`, {
-          headers: authHeaders,
-        });
+        await axios.delete(`${apiBaseUrl}/api/community/posts/${post.id}/like`, { headers: authHeaders });
       } else {
-        await axios.post(`${apiBaseUrl}/api/community/posts/${post.id}/like`, {}, {
-          headers: authHeaders,
-        });
+        await axios.post(`${apiBaseUrl}/api/community/posts/${post.id}/like`, {}, { headers: authHeaders });
       }
       await loadCommunityState(page, false);
     } catch (error: any) {
@@ -285,14 +265,19 @@ const CommunityPage = () => {
     }
   };
 
-  const loadComments = async (postId: string) => {
-    try {
-      const res = await axios.get(`${apiBaseUrl}/api/community/posts/${postId}/comments`, {
-        headers: authHeaders,
-      });
-      setCommentsByPost((prev) => ({ ...prev, [postId]: res.data.comments || [] }));
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to load comments.");
+  const toggleComments = async (postId: string) => {
+    if (activeCommentPost === postId) {
+      setActiveCommentPost(null);
+      return;
+    }
+    setActiveCommentPost(postId);
+    if (!commentsByPost[postId]) {
+      try {
+        const res = await axios.get(`${apiBaseUrl}/api/community/posts/${postId}/comments`, { headers: authHeaders });
+        setCommentsByPost((prev) => ({ ...prev, [postId]: res.data.comments || [] }));
+      } catch (error: any) {
+        toast.error(error.response?.data?.error || "Failed to load comments.");
+      }
     }
   };
 
@@ -300,13 +285,12 @@ const CommunityPage = () => {
     const comment = commentDrafts[postId]?.trim();
     if (!comment) return;
     try {
-      await axios.post(
-        `${apiBaseUrl}/api/community/posts/${postId}/comments`,
-        { comment },
-        { headers: authHeaders }
-      );
+      await axios.post(`${apiBaseUrl}/api/community/posts/${postId}/comments`, { comment }, { headers: authHeaders });
       setCommentDrafts((prev) => ({ ...prev, [postId]: "" }));
-      await Promise.all([loadComments(postId), loadCommunityState(page, false)]);
+      
+      const res = await axios.get(`${apiBaseUrl}/api/community/posts/${postId}/comments`, { headers: authHeaders });
+      setCommentsByPost((prev) => ({ ...prev, [postId]: res.data.comments || [] }));
+      await loadCommunityState(page, false);
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Failed to add comment.");
     }
@@ -314,10 +298,10 @@ const CommunityPage = () => {
 
   const deleteComment = async (commentId: string, postId: string) => {
     try {
-      await axios.delete(`${apiBaseUrl}/api/community/comments/${commentId}`, {
-        headers: authHeaders,
-      });
-      await Promise.all([loadComments(postId), loadCommunityState(page, false)]);
+      await axios.delete(`${apiBaseUrl}/api/community/comments/${commentId}`, { headers: authHeaders });
+      const res = await axios.get(`${apiBaseUrl}/api/community/posts/${postId}/comments`, { headers: authHeaders });
+      setCommentsByPost((prev) => ({ ...prev, [postId]: res.data.comments || [] }));
+      await loadCommunityState(page, false);
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Failed to delete comment.");
     }
@@ -327,7 +311,7 @@ const CommunityPage = () => {
     const postUrl = `${window.location.origin}/community?post=${post.id}`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "Internarea Community", text: post.caption, url: postUrl });
+        await navigator.share({ title: "InternArea Community", text: post.caption, url: postUrl });
       } else {
         await navigator.clipboard.writeText(postUrl);
         toast.success("Post link copied.");
@@ -335,9 +319,7 @@ const CommunityPage = () => {
       await axios.post(`${apiBaseUrl}/api/community/posts/${post.id}/share`, {}, { headers: authHeaders });
       await loadCommunityState(page, false);
     } catch (error: any) {
-      if (error?.name !== "AbortError") {
-        toast.error(error.response?.data?.error || "Failed to share post.");
-      }
+      if (error?.name !== "AbortError") toast.error(error.response?.data?.error || "Failed to share post.");
     }
   };
 
@@ -399,13 +381,15 @@ const CommunityPage = () => {
     setShowComposer(true);
   };
 
+  const getInitials = (name: string) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : 'U';
+
   if (isResolvingAuth) {
     return (
-      <div className="min-h-screen bg-slate-50 py-16 px-4">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-          <Users className="mx-auto h-12 w-12 animate-pulse text-blue-600" />
-          <h1 className="mt-4 text-3xl font-bold text-slate-900">Community Space</h1>
-          <p className="mt-3 text-slate-600">Checking your community access...</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex flex-col items-center animate-pulse">
+          <Users className="h-12 w-12 text-blue-300 mb-4" />
+          <div className="h-6 w-48 bg-slate-200 rounded mb-2"></div>
+          <div className="h-4 w-64 bg-slate-200 rounded"></div>
         </div>
       </div>
     );
@@ -413,36 +397,40 @@ const CommunityPage = () => {
 
   if (!isAuthenticatedForCommunity) {
     return (
-      <div className="min-h-screen bg-slate-50 py-16 px-4">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-          <Users className="mx-auto h-12 w-12 text-blue-600" />
-          <h1 className="mt-4 text-3xl font-bold text-slate-900">Community Space</h1>
-          <p className="mt-3 text-slate-600">
-            Please sign in with your personal account or Google account to access the community feed.
-          </p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-100 text-center">
+          <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Users className="h-10 w-10" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">Community Access</h1>
+          <p className="text-slate-500 mb-8">Join the conversation. Sign in to connect with other professionals and share your journey.</p>
+          <Link href="/login" className="inline-block w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
+            Sign In to Continue
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#eff6ff_0%,#f8fafc_18%,#ffffff_100%)] px-4 py-10">
-      <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[280px_minmax(0,1fr)_320px]">
-        <aside className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-slate-50 pt-8 pb-20 font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)_320px]">
+        
+        {/* Left Sidebar - Profile & Friends */}
+        <aside className="space-y-6 hidden lg:block sticky top-28 h-fit">
+          <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 text-center">
+            <div className="relative inline-block mb-4">
               {user?.photo ? (
-                <img src={user.photo} alt={user.name} className="h-14 w-14 rounded-2xl object-cover" />
+                <img src={user.photo} alt={user.name} className="h-20 w-20 rounded-full object-cover border-4 border-white shadow-md mx-auto" />
               ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 font-bold text-blue-700">
-                  {user?.name?.[0] || "U"}
+                <div className="h-20 w-20 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600 flex items-center justify-center text-2xl font-bold border-4 border-white shadow-md mx-auto">
+                  {getInitials(user?.name)}
                 </div>
               )}
-              <div>
-                <p className="text-lg font-semibold text-slate-900">{user?.name}</p>
-                <p className="text-sm text-slate-500">{friendCount} friends</p>
-              </div>
             </div>
+            <h2 className="text-lg font-bold text-slate-900 mb-1">{user?.name}</h2>
+            <p className="text-sm font-medium text-slate-500 mb-6">{friendCount} connections</p>
+            
             <button
               onClick={() => {
                 setEditingPostId(null);
@@ -451,45 +439,45 @@ const CommunityPage = () => {
                 setPreviews([]);
                 setShowComposer(true);
               }}
-              className="mt-6 w-full rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors shadow-sm"
             >
-              Create Post
+              Write a Post
             </button>
-            {friendCount === 0 ? (
-              <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                You need at least one friend to create a post.
+            {friendCount === 0 && (
+              <p className="mt-3 text-xs text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100">
+                You need at least 1 connection to start posting.
               </p>
-            ) : null}
+            )}
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Friends</h2>
-              <span className="text-sm text-slate-500">{friendCount}</span>
+          <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-slate-900">Connections</h3>
+              <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-full">{friendCount}</span>
             </div>
-            <div className="mt-4 space-y-3">
+            
+            <div className="space-y-3 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
               {friends.length === 0 ? (
-                <p className="text-sm text-slate-500">No friends yet. Send requests to unlock posting.</p>
+                <p className="text-sm text-slate-500 italic">No connections yet.</p>
               ) : (
                 friends.map((friend) => (
-                  <div key={friend.id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
+                  <div key={friend.id} className="flex items-center justify-between gap-3 group">
                     <div className="flex items-center gap-3">
                       {friend.photo ? (
-                        <img src={friend.photo} alt={friend.name} className="h-10 w-10 rounded-xl object-cover" />
+                        <img src={friend.photo} alt={friend.name} className="h-10 w-10 rounded-full object-cover border border-slate-100" />
                       ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
-                          {friend.name[0]}
+                        <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-sm font-bold border border-slate-200">
+                          {getInitials(friend.name)}
                         </div>
                       )}
                       <div>
-                        <Link href={`/profile?user=${friend.id}`} className="font-medium text-slate-900 hover:text-blue-600">
+                        <Link href={`/profile?user=${friend.id}`} className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
                           {friend.name}
                         </Link>
-                        <p className="text-xs text-slate-500">{friend.friendCount || 0} friends</p>
                       </div>
                     </div>
-                    <button onClick={() => removeFriend(friend.id)} className="text-slate-400 hover:text-red-600">
-                      <UserRoundX size={18} />
+                    <button onClick={() => removeFriend(friend.id)} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100">
+                      <UserRoundX size={16} />
                     </button>
                   </div>
                 ))
@@ -498,265 +486,350 @@ const CommunityPage = () => {
           </div>
         </aside>
 
-        <main className="space-y-6">
-          {showComposer ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-slate-900">
-                  {editingPostId ? "Edit Post" : "Create a new post"}
-                </h2>
-                <button onClick={() => setShowComposer(false)} className="text-sm text-slate-500 hover:text-slate-700">
-                  Close
+        {/* Middle Feed */}
+        <main className="space-y-6 max-w-2xl mx-auto w-full">
+          {/* Mobile Write Post Action */}
+          <div className="lg:hidden bg-white rounded-3xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex gap-3 items-center">
+             {user?.photo ? (
+                <img src={user.photo} alt={user.name} className="h-12 w-12 rounded-full object-cover" />
+              ) : (
+                <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold">
+                  {getInitials(user?.name)}
+                </div>
+              )}
+              <button 
+                onClick={() => setShowComposer(true)}
+                className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left px-4 py-3 rounded-full text-slate-500 transition-colors"
+              >
+                Share an update...
+              </button>
+          </div>
+
+          {/* Post Composer Modal/Inline */}
+          {showComposer && (
+            <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-blue-100 animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                <h3 className="text-lg font-bold text-slate-900">{editingPostId ? "Edit Post" : "Create Post"}</h3>
+                <button onClick={() => setShowComposer(false)} className="text-slate-400 hover:text-slate-600 bg-slate-50 p-2 rounded-full">
+                  <X size={20} />
                 </button>
               </div>
-              <textarea
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                rows={4}
-                placeholder="Share your update, learning, win, or project progress..."
-                className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
-              />
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => fileRef.current?.click()}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                >
-                  <ImageIcon size={18} />
-                  Add Media
-                </button>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  multiple
-                  accept="image/*,video/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-                <span className="text-sm text-slate-500">Images and videos supported</span>
+              
+              <div className="flex gap-4 mb-4">
+                {user?.photo ? (
+                  <img src={user.photo} alt={user.name} className="h-10 w-10 rounded-full object-cover" />
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold">
+                    {getInitials(user?.name)}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <textarea
+                    value={caption}
+                    onChange={(e) => setCaption(e.target.value)}
+                    rows={3}
+                    placeholder="What do you want to talk about?"
+                    className="w-full bg-transparent resize-none outline-none text-slate-800 placeholder-slate-400 text-lg"
+                    autoFocus
+                  />
+                </div>
               </div>
-              {previews.length > 0 ? (
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+
+              {previews.length > 0 && (
+                <div className="grid gap-2 grid-cols-2 mb-4 rounded-2xl overflow-hidden border border-slate-100">
                   {previews.map((preview, index) => {
-                    const isVideo =
-                      selectedFiles[index]?.type?.startsWith("video/") ||
-                      /\.(mp4|mov|webm|mkv)$/i.test(preview);
+                    const isVideo = selectedFiles[index]?.type?.startsWith("video/") || /\.(mp4|mov|webm|mkv)$/i.test(preview);
                     return isVideo ? (
-                      <video key={preview + index} src={preview} controls className="h-48 w-full rounded-2xl object-cover" />
+                      <video key={index} src={preview} controls className="h-48 w-full object-cover bg-black" />
                     ) : (
-                      <img key={preview + index} src={preview} alt="preview" className="h-48 w-full rounded-2xl object-cover" />
+                      <img key={index} src={preview} alt="upload preview" className="h-48 w-full object-cover" />
                     );
                   })}
                 </div>
-              ) : null}
-              <div className="mt-6 flex justify-end">
+              )}
+
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors flex items-center gap-2 px-4"
+                >
+                  <ImageIcon size={20} /> <span className="text-sm font-semibold">Media</span>
+                </button>
+                <input ref={fileRef} type="file" multiple accept="image/*,video/*" className="hidden" onChange={handleFileChange} />
+                
                 <button
                   onClick={handleCreateOrEditPost}
-                  disabled={isPosting}
-                  className="rounded-2xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                  disabled={isPosting || (!caption.trim() && previews.length === 0)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-full disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors flex items-center gap-2 shadow-sm"
                 >
-                  {isPosting ? "Saving..." : editingPostId ? "Update Post" : "Publish Post"}
+                  {isPosting ? "Posting..." : "Post"} <Send size={16} />
                 </button>
               </div>
             </div>
-          ) : null}
-
-          {isLoading ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-slate-500 shadow-sm">
-              Loading community feed...
-            </div>
-          ) : feed.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
-              <h2 className="text-2xl font-semibold text-slate-900">No posts yet</h2>
-              <p className="mt-2 text-slate-500">Be the first to share something once you have enough friends.</p>
-            </div>
-          ) : (
-            feed.map((post) => (
-              <article key={post.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    {post.user?.photo ? (
-                      <img src={post.user.photo} alt={post.user.name} className="h-12 w-12 rounded-2xl object-cover" />
-                    ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 font-bold text-blue-700">
-                        {post.user?.name?.[0] || "U"}
-                      </div>
-                    )}
-                    <div>
-                      <Link href={`/profile?user=${post.user?.id || ""}`} className="font-semibold text-slate-900 hover:text-blue-600">
-                        {post.user?.name || "Community User"}
-                      </Link>
-                      <p className="text-sm text-slate-500">{new Date(post.createdAt).toLocaleString()}</p>
-                    </div>
-                  </div>
-                  {String(post.user?.id) === String(user?.id) ? (
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => beginEditPost(post)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-blue-600">
-                        <Pencil size={18} />
-                      </button>
-                      <button onClick={() => deletePost(post.id)} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100 hover:text-red-600">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-
-                {post.caption ? <p className="mt-4 whitespace-pre-wrap text-slate-700">{post.caption}</p> : null}
-
-                {post.media.length > 0 ? (
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    {post.media.map((item, index) =>
-                      post.mediaType === "video" || (post.mediaType === "mixed" && /\.(mp4|mov|webm|mkv)$/i.test(item)) ? (
-                        <video key={item + index} src={item} controls className="h-72 w-full rounded-2xl bg-black object-cover" />
-                      ) : (
-                        <img key={item + index} src={item} alt="community media" className="h-72 w-full rounded-2xl object-cover" />
-                      )
-                    )}
-                  </div>
-                ) : null}
-
-                <div className="mt-5 flex items-center justify-between text-sm text-slate-500">
-                  <span>{post.likes} likes</span>
-                  <span>{post.comments} comments</span>
-                  <span>{post.shares} shares</span>
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <button onClick={() => toggleLike(post)} className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-medium ${post.likedByCurrentUser ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-700"}`}>
-                    <Heart size={18} />
-                    {post.likedByCurrentUser ? "Unlike" : "Like"}
-                  </button>
-                  <button
-                    onClick={() => loadComments(post.id)}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700"
-                  >
-                    <MessageCircle size={18} />
-                    Comments
-                  </button>
-                  <button onClick={() => sharePost(post)} className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700">
-                    <Share2 size={18} />
-                    Share
-                  </button>
-                </div>
-
-                <div className="mt-4 rounded-2xl bg-slate-50 p-4">
-                  <div className="flex gap-3">
-                    <input
-                      value={commentDrafts[post.id] || ""}
-                      onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                      placeholder="Write a comment..."
-                      className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
-                    />
-                    <button onClick={() => addComment(post.id)} className="rounded-2xl bg-blue-600 px-4 py-3 text-white hover:bg-blue-700">
-                      <Send size={18} />
-                    </button>
-                  </div>
-
-                  {(commentsByPost[post.id] || []).length > 0 ? (
-                    <div className="mt-4 space-y-3">
-                      {commentsByPost[post.id].map((comment) => (
-                        <div key={comment.id} className="rounded-2xl bg-white p-3">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <p className="font-medium text-slate-900">{comment.user?.name || "User"}</p>
-                              <p className="mt-1 text-sm text-slate-600">{comment.comment}</p>
-                              <p className="mt-1 text-xs text-slate-400">{new Date(comment.createdAt).toLocaleString()}</p>
-                            </div>
-                            {comment.isOwner ? (
-                              <button onClick={() => deleteComment(comment.id, post.id)} className="text-slate-400 hover:text-red-600">
-                                <Trash2 size={16} />
-                              </button>
-                            ) : null}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              </article>
-            ))
           )}
 
-          {hasMore && !isLoading ? (
-            <div className="flex justify-center">
-              <button
-                onClick={() => loadCommunityState(page + 1, true)}
-                className="rounded-2xl border border-slate-200 bg-white px-6 py-3 font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-              >
-                Load more posts
-              </button>
-            </div>
-          ) : null}
-        </main>
-
-        <aside className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Find people</h2>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, email, phone"
-              className="mt-4 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500"
-            />
-            <div className="mt-4 space-y-3">
-              {discoverUsers.map((person) => (
-                <div key={person.id} className="rounded-2xl bg-slate-50 p-4">
-                  <div className="flex items-center gap-3">
-                    {person.photo ? (
-                      <img src={person.photo} alt={person.name} className="h-12 w-12 rounded-2xl object-cover" />
-                    ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-700">
-                        {person.name[0]}
-                      </div>
-                    )}
+          {/* Feed List */}
+          {isLoading ? (
+            <div className="space-y-6">
+              {[1,2].map(skeleton => (
+                <div key={skeleton} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm animate-pulse">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 bg-slate-200 rounded-full"></div>
                     <div>
-                      <p className="font-medium text-slate-900">{person.name}</p>
-                      <p className="text-xs text-slate-500">{person.friendCount || 0} friends</p>
+                      <div className="w-32 h-4 bg-slate-200 rounded mb-2"></div>
+                      <div className="w-20 h-3 bg-slate-200 rounded"></div>
                     </div>
                   </div>
-                  <div className="mt-3">
-                    {person.relationship === "friend" ? (
-                      <span className="inline-flex items-center gap-2 rounded-2xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
-                        <UserCheck size={16} />
-                        Friends
-                      </span>
-                    ) : person.relationship === "incoming" ? (
-                      <span className="rounded-2xl bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700">
-                        Sent you a request
-                      </span>
-                    ) : person.relationship === "outgoing" ? (
-                      <span className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600">
-                        Request pending
-                      </span>
-                    ) : (
-                      <button onClick={() => sendFriendRequest(person.id)} className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-                        <UserPlus size={16} />
-                        Add Friend
-                      </button>
-                    )}
-                  </div>
+                  <div className="w-full h-4 bg-slate-200 rounded mb-2"></div>
+                  <div className="w-3/4 h-4 bg-slate-200 rounded mb-4"></div>
+                  <div className="w-full h-64 bg-slate-200 rounded-2xl"></div>
                 </div>
               ))}
             </div>
-          </div>
+          ) : feed.length === 0 ? (
+            <div className="bg-white rounded-3xl p-12 text-center border border-slate-100 shadow-sm">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="h-10 w-10 text-slate-300" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Your feed is quiet</h3>
+              <p className="text-slate-500 mb-6 max-w-sm mx-auto">Connect with others or create a post to get the conversation started.</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {feed.map((post) => (
+                <article key={post.id} className="bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+                  <div className="p-5 pb-0">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex gap-3">
+                        {post.user?.photo ? (
+                          <img src={post.user.photo} alt={post.user.name} className="h-12 w-12 rounded-full object-cover border border-slate-100" />
+                        ) : (
+                          <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold border border-slate-200">
+                            {getInitials(post.user?.name || "U")}
+                          </div>
+                        )}
+                        <div>
+                          <Link href={`/profile?user=${post.user?.id || ""}`} className="font-bold text-slate-900 hover:text-blue-600 transition-colors">
+                            {post.user?.name || "Community User"}
+                          </Link>
+                          <p className="text-xs font-medium text-slate-500 flex items-center gap-1">
+                            {new Date(post.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })} • 
+                            <span className="opacity-75">{new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {String(post.user?.id) === String(user?.id) && (
+                        <div className="flex gap-1">
+                          <button onClick={() => beginEditPost(post)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-full transition-colors">
+                            <Pencil size={18} />
+                          </button>
+                          <button onClick={() => deletePost(post.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Friend Requests</h2>
-            <div className="mt-4 space-y-3">
-              {incomingRequests.length === 0 ? (
-                <p className="text-sm text-slate-500">No incoming friend requests.</p>
-              ) : (
-                incomingRequests.map((request) => (
-                  <div key={request.id} className="rounded-2xl bg-slate-50 p-4">
-                    <p className="font-medium text-slate-900">{request.sender?.name}</p>
-                    <p className="text-xs text-slate-500">{new Date(request.createdAt).toLocaleString()}</p>
-                    <div className="mt-3 flex gap-2">
-                      <button onClick={() => acceptRequest(request.id)} className="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-                        Accept
+                    {post.caption && (
+                      <p className="text-slate-800 whitespace-pre-wrap mb-4 text-[15px] leading-relaxed">{post.caption}</p>
+                    )}
+                  </div>
+
+                  {post.media.length > 0 && (
+                    <div className={`grid gap-1 ${post.media.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                      {post.media.map((item, index) => {
+                        const isVideo = post.mediaType === "video" || (post.mediaType === "mixed" && /\.(mp4|mov|webm|mkv)$/i.test(item));
+                        return isVideo ? (
+                          <video key={index} src={item} controls className="w-full max-h-[500px] object-cover bg-black" />
+                        ) : (
+                          <img key={index} src={item} alt="post media" className="w-full max-h-[500px] object-cover" />
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <div className="px-5 py-4">
+                    <div className="flex items-center justify-between text-sm text-slate-500 font-medium mb-4 pb-4 border-b border-slate-100">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center"><Heart size={10} className="fill-blue-500 text-blue-500" /></div>
+                        {post.likes}
+                      </div>
+                      <div className="flex gap-4">
+                        <span>{post.comments} comments</span>
+                        <span>{post.shares} shares</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <button 
+                        onClick={() => toggleLike(post)} 
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl font-semibold transition-colors ${post.likedByCurrentUser ? "text-blue-600 bg-blue-50" : "text-slate-600 hover:bg-slate-50"}`}
+                      >
+                        <Heart size={20} className={post.likedByCurrentUser ? "fill-blue-600" : ""} /> Like
                       </button>
-                      <button onClick={() => rejectRequest(request.id)} className="rounded-2xl bg-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-300">
-                        Reject
+                      <button 
+                        onClick={() => toggleComments(post.id)} 
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl font-semibold transition-colors ${activeCommentPost === post.id ? "text-blue-600 bg-blue-50" : "text-slate-600 hover:bg-slate-50"}`}
+                      >
+                        <MessageCircle size={20} /> Comment
+                      </button>
+                      <button 
+                        onClick={() => sharePost(post)} 
+                        className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                      >
+                        <Share2 size={20} /> Share
                       </button>
                     </div>
+
+                    {/* Comments Section */}
+                    {activeCommentPost === post.id && (
+                      <div className="mt-4 pt-4 border-t border-slate-100 animate-in slide-in-from-top-2">
+                        <div className="flex gap-3 mb-6">
+                           {user?.photo ? (
+                            <img src={user.photo} alt="me" className="w-8 h-8 rounded-full object-cover shrink-0 mt-1" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold shrink-0 mt-1">
+                              {getInitials(user?.name)}
+                            </div>
+                          )}
+                          <div className="flex-1 relative">
+                            <input
+                              value={commentDrafts[post.id] || ""}
+                              onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))}
+                              placeholder="Add a comment..."
+                              className="w-full bg-slate-50 border border-slate-200 rounded-full pl-4 pr-12 py-2.5 outline-none focus:border-blue-400 focus:bg-white text-sm"
+                              onKeyDown={(e) => e.key === 'Enter' && addComment(post.id)}
+                            />
+                            <button 
+                              onClick={() => addComment(post.id)} 
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors disabled:opacity-50"
+                              disabled={!commentDrafts[post.id]?.trim()}
+                            >
+                              <Send size={14} className="ml-[-1px] mt-[1px]" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                          {(commentsByPost[post.id] || []).map((comment) => (
+                            <div key={comment.id} className="flex gap-3 group">
+                              {comment.user?.photo ? (
+                                <img src={comment.user.photo} alt={comment.user.name} className="w-8 h-8 rounded-full object-cover shrink-0" />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold shrink-0">
+                                  {getInitials(comment.user?.name || "U")}
+                                </div>
+                              )}
+                              <div className="flex-1">
+                                <div className="bg-slate-50 rounded-2xl rounded-tl-none px-4 py-2.5 inline-block max-w-[90%] relative group-hover:bg-slate-100 transition-colors">
+                                  <h4 className="text-sm font-bold text-slate-900">{comment.user?.name || "User"}</h4>
+                                  <p className="text-sm text-slate-700 mt-0.5">{comment.comment}</p>
+                                  
+                                  {comment.isOwner && (
+                                    <button 
+                                      onClick={() => deleteComment(comment.id, post.id)} 
+                                      className="absolute -right-8 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-red-500 bg-white rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-slate-400 font-medium ml-2 mt-1">
+                                  {new Date(comment.createdAt).toLocaleDateString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                </article>
+              ))}
+              
+              {hasMore && !isLoading && (
+                <button
+                  onClick={() => loadCommunityState(page + 1, true)}
+                  className="w-full py-4 bg-white border border-slate-200 rounded-3xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+                >
+                  Load More
+                </button>
+              )}
+            </div>
+          )}
+        </main>
+
+        {/* Right Sidebar - Find People & Requests */}
+        <aside className="space-y-6 hidden lg:block sticky top-28 h-fit">
+          {incomingRequests.length > 0 && (
+            <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-blue-100">
+              <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <Users size={18} className="text-blue-600" /> Pending Requests
+              </h3>
+              <div className="space-y-4">
+                {incomingRequests.map((req) => (
+                  <div key={req.id} className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <p className="font-bold text-slate-900 text-sm">{req.sender?.name}</p>
+                    <p className="text-xs text-slate-500 mb-3">{new Date(req.createdAt).toLocaleDateString()}</p>
+                    <div className="flex gap-2">
+                      <button onClick={() => acceptRequest(req.id)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl transition-colors">
+                        Accept
+                      </button>
+                      <button onClick={() => rejectRequest(req.id)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-2 rounded-xl transition-colors">
+                        Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+            <h3 className="font-bold text-slate-900 mb-4">Discover People</h3>
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search community..."
+                className="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-colors"
+              />
+            </div>
+            
+            <div className="space-y-4">
+              {discoverUsers.length === 0 ? (
+                <p className="text-sm text-slate-500 text-center py-4">No users found.</p>
+              ) : (
+                discoverUsers.map((person) => (
+                  <div key={person.id} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      {person.photo ? (
+                        <img src={person.photo} alt={person.name} className="h-10 w-10 rounded-full object-cover border border-slate-100 shrink-0" />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold border border-slate-200 shrink-0 text-sm">
+                          {getInitials(person.name)}
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-bold text-slate-900 text-sm line-clamp-1">{person.name}</p>
+                        <p className="text-xs font-medium text-slate-500">{person.friendCount || 0} conns</p>
+                      </div>
+                    </div>
+                    
+                    {person.relationship === "friend" ? (
+                       <button disabled className="p-2 rounded-full bg-slate-50 text-slate-400 border border-slate-100"><UserCheck size={16} /></button>
+                    ) : person.relationship === "incoming" ? (
+                       <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">Review</span>
+                    ) : person.relationship === "outgoing" ? (
+                       <span className="text-xs font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg">Sent</span>
+                    ) : (
+                      <button onClick={() => sendFriendRequest(person.id)} className="p-2 rounded-full bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors">
+                        <UserPlus size={16} />
+                      </button>
+                    )}
                   </div>
                 ))
               )}
