@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import logo from "../Assets/logo.png";
 import Link from "next/link";
 import { auth, provider, firebaseInitError } from "../firebase/firebase";
-import { ChevronDown, Search, Globe, UserRound } from "lucide-react";
+import { ChevronDown, Search, Globe, UserRound, Crown } from "lucide-react";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -246,137 +246,130 @@ const Navbar = () => {
     }
   };
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="relative">
-      <nav className="bg-white shadow-md relative z-10">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
+          <div className="flex justify-between h-20 items-center">
             {/* Logo */}
-            <div className="flex-shrink-0">
-              <a href="/" className="text-xl font-bold text-blue-600">
-                <img src={"/logo.png"} alt="" className="h-16" />
+            <div className="flex-shrink-0 flex items-center">
+              <a href="/" className="flex items-center gap-2 group">
+                <img src={"/logo.png"} alt="InternArea" className="h-10 w-auto group-hover:scale-105 transition-transform" />
+                <span className="text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+                  Intern<span className="text-blue-600">Area</span>
+                </span>
               </a>
             </div>
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
-              <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
-                <Link href={"/internship"}>
-                  <span>{t("internships")}</span>
-                </Link>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
-                <Link href={"/job"}>
-                  <span>{t("jobs")}</span>
-                </Link>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 font-medium bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
-                <Link href={"/resume"}>
-                  <span>Resume Builder ✨</span>
-                </Link>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 font-medium bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
-                <Link href={"/subscription"}>
-                  <span>Subscription 👑</span>
-                </Link>
-              </button>
-              <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
-                <Link href={"/community"}>
-                  <span>Community</span>
-                </Link>
-              </button>
-              <div className="flex items-center bg-gray-100 rounded-full px-4 py-2">
-                <Search size={16} className="text-gray-400" />
+
+            {/* Desktop Navigation Links */}
+            <div className="hidden lg:flex items-center space-x-1">
+              <Link href={"/internship"} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                {t("internships")}
+              </Link>
+              <Link href={"/job"} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                {t("jobs")}
+              </Link>
+              <Link href={"/resume"} className="px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50/50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all flex items-center gap-1.5">
+                Resume Builder <span className="text-base">✨</span>
+              </Link>
+              <Link href={"/subscription"} className="px-4 py-2 text-sm font-semibold text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all flex items-center gap-1.5 ml-2">
+                Premium <Crown size={16} className="text-emerald-500" />
+              </Link>
+              <Link href={"/community"} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all ml-2">
+                Community
+              </Link>
+              
+              {/* Search Bar */}
+              <div className="ml-4 flex items-center bg-slate-100 hover:bg-slate-200/80 transition-colors rounded-full px-4 py-2 border border-transparent focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10">
+                <Search size={18} className="text-slate-400" />
                 <input
                   type="text"
                   placeholder={t("search_opportunities")}
-                  className="ml-2 bg-transparent focus:outline-none text-sm w-48"
+                  className="ml-2 bg-transparent border-none focus:outline-none text-sm w-48 text-slate-700 placeholder-slate-400"
                 />
               </div>
             </div>
 
-            {/* Auth & Language */}
-            <div className="flex items-center space-x-4">
+            {/* Desktop Auth & Language */}
+            <div className="hidden lg:flex items-center space-x-3">
               {/* Language Switcher */}
               <div className="relative">
                 <button 
                   onClick={() => setShowLangMenu(!showLangMenu)}
-                  className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md transition-colors"
+                  className="flex items-center space-x-1.5 text-slate-600 hover:text-blue-600 px-3 py-2 rounded-lg hover:bg-slate-50 transition-all border border-transparent"
                 >
-                  <Globe size={20} />
-                  <span suppressHydrationWarning className="uppercase text-sm font-medium">{i18n.language || 'EN'}</span>
-                  <ChevronDown size={16} className={`transition-transform duration-200 ${showLangMenu ? 'rotate-180' : ''}`} />
+                  <Globe size={18} />
+                  <span suppressHydrationWarning className="uppercase text-sm font-semibold">{i18n.language || 'EN'}</span>
+                  <ChevronDown size={14} className={`transition-transform duration-200 ${showLangMenu ? 'rotate-180' : ''}`} />
                 </button>
                 {showLangMenu && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg py-2 border border-gray-100 z-50">
-                    <button onClick={() => handleLanguageChange('en')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'en' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇺🇸 English</button>
-                    <button onClick={() => handleLanguageChange('es')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'es' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇪🇸 Español</button>
-                    <button onClick={() => handleLanguageChange('hi')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'hi' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇮🇳 हिंदी</button>
-                    <button onClick={() => handleLanguageChange('pt')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'pt' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇧🇷 Português</button>
-                    <button onClick={() => handleLanguageChange('zh')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'zh' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇨🇳 中文</button>
-                    <button onClick={() => handleLanguageChange('fr')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'fr' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇫🇷 Français</button>
+                  <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] py-2 border border-slate-100 z-50 overflow-hidden transform opacity-100 scale-100 transition-all origin-top-right">
+                    <button onClick={() => handleLanguageChange('en')} className={`block w-full text-left px-5 py-2.5 text-sm transition-colors ${i18n.language === 'en' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>🇺🇸 English</button>
+                    <button onClick={() => handleLanguageChange('es')} className={`block w-full text-left px-5 py-2.5 text-sm transition-colors ${i18n.language === 'es' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>🇪🇸 Español</button>
+                    <button onClick={() => handleLanguageChange('hi')} className={`block w-full text-left px-5 py-2.5 text-sm transition-colors ${i18n.language === 'hi' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>🇮🇳 हिंदी</button>
+                    <button onClick={() => handleLanguageChange('pt')} className={`block w-full text-left px-5 py-2.5 text-sm transition-colors ${i18n.language === 'pt' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>🇧🇷 Português</button>
+                    <button onClick={() => handleLanguageChange('zh')} className={`block w-full text-left px-5 py-2.5 text-sm transition-colors ${i18n.language === 'zh' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>🇨🇳 中文</button>
+                    <button onClick={() => handleLanguageChange('fr')} className={`block w-full text-left px-5 py-2.5 text-sm transition-colors ${i18n.language === 'fr' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}>🇫🇷 Français</button>
                   </div>
                 )}
               </div>
 
+              <div className="h-6 w-px bg-slate-200 mx-2"></div>
+
               {user ? (
-                <div className="relative flex">
-                  <button className="flex items-center space-x-2">
-                    <Link href={"/profile"}>
-                      <img
-                        src={user.photo}
-                        alt=""
-                        className="w-8 h-8 rounded-full border-2 border-blue-100"
-                      />
-                    </Link>
-                  </button>
+                <div className="flex items-center gap-4">
+                  <Link href={"/profile"} className="relative group">
+                    <div className="absolute inset-0 bg-blue-500 rounded-full blur opacity-40 group-hover:opacity-100 transition-opacity"></div>
+                    <img
+                      src={user.photo}
+                      alt={user.name}
+                      className="w-10 h-10 rounded-full border-2 border-white shadow-sm relative z-10 object-cover"
+                    />
+                  </Link>
                   <button
-                    className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors font-medium ml-2"
+                    className="px-5 py-2 text-sm font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
                     onClick={handlelogout}
                   >
                     {t("logout")}
                   </button>
                 </div>
               ) : (
-                <>
+                <div className="flex items-center gap-3">
                   <div className="relative">
                     <button
                       onClick={() => setShowPersonalMenu((prev) => !prev)}
-                      className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 transition-all"
                     >
-                      <UserRound size={18} />
-                      <span>Personal</span>
-                      <ChevronDown size={16} className={`transition-transform ${showPersonalMenu ? "rotate-180" : ""}`} />
+                      <UserRound size={16} />
+                      <span>Log in</span>
+                      <ChevronDown size={14} className={`text-slate-400 transition-transform ${showPersonalMenu ? "rotate-180" : ""}`} />
                     </button>
 
                     {showPersonalMenu && (
-                      <div className="absolute right-0 mt-2 w-64 rounded-xl border border-gray-100 bg-white p-2 shadow-xl z-50">
+                      <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-slate-100 z-50 origin-top-right transform transition-all">
                         <Link
                           href="/login"
-                          className="block rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                          className="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
                           onClick={() => setShowPersonalMenu(false)}
                         >
                           Email / Phone Login
                         </Link>
                         <Link
                           href="/register"
-                          className="block rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                          className="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
                           onClick={() => setShowPersonalMenu(false)}
                         >
-                          Create Personal Account
+                          Create Account
                         </Link>
-                        <Link
-                          href="/forgot-password"
-                          className="block rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                          onClick={() => setShowPersonalMenu(false)}
-                        >
-                          Forgot Password
-                        </Link>
+                        <div className="my-1 h-px bg-slate-100"></div>
                         <button
                           onClick={() => {
                             setShowPersonalMenu(false);
                             handlelogin();
                           }}
-                          className="mt-1 flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
                         >
                           <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -389,14 +382,69 @@ const Navbar = () => {
                       </div>
                     )}
                   </div>
-                  <a href="/adminlogin" className="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
+                  <Link href="/adminlogin" className="px-5 py-2.5 text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
                     {t("admin")}
-                  </a>
-                </>
+                  </Link>
+                </div>
               )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="flex lg:hidden items-center gap-4">
+              {user && (
+                <Link href={"/profile"}>
+                  <img src={user.photo} alt={user.name} className="w-8 h-8 rounded-full border border-slate-200" />
+                </Link>
+              )}
+              <button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {isMobileMenuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-200 shadow-xl py-4 px-4 flex flex-col gap-2 z-40 animate-in slide-in-from-top-4 duration-200">
+            <Link href={"/internship"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">Internships</Link>
+            <Link href={"/job"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">Jobs</Link>
+            <Link href={"/resume"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-semibold text-blue-700 bg-blue-50 rounded-xl">Resume Builder ✨</Link>
+            <Link href={"/subscription"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-semibold text-emerald-700 bg-emerald-50 rounded-xl">Premium Subscription 👑</Link>
+            <Link href={"/community"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">Community</Link>
+            
+            <div className="h-px bg-slate-100 my-2"></div>
+            
+            {!user && (
+              <>
+                <button onClick={() => { setIsMobileMenuOpen(false); handlelogin(); }} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3">
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                  </svg>
+                  Login with Google
+                </button>
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">Email Login</Link>
+                <Link href="/adminlogin" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-rose-700 bg-rose-50 rounded-xl mt-2 text-center">Admin Access</Link>
+              </>
+            )}
+            {user && (
+              <button onClick={() => { setIsMobileMenuOpen(false); handlelogout(); }} className="px-4 py-3 text-base font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl text-center w-full mt-2">
+                Log Out
+              </button>
+            )}
+          </div>
+        )}
       </nav>
 
       {/* French OTP Modal */}
