@@ -48,13 +48,17 @@ router.post('/request-otp', otpRateLimiter, async (req, res) => {
             purpose: 'LANGUAGE_CHANGE'
         });
 
-        // Send email
-        await transporter.sendMail({
-            from: '"Internshala Security" <security@internshala.com>',
-            to: email,
-            subject: 'OTP for Language Change',
-            text: `Your OTP to switch language to ${languageCode.toUpperCase()} is ${otpCode}. It expires in 5 minutes.`
-        });
+        // Try to send email, but don't crash if Ethereal credentials are fake/missing
+        try {
+            await transporter.sendMail({
+                from: '"Internshala Security" <security@internshala.com>',
+                to: email,
+                subject: 'OTP for Language Change',
+                text: `Your OTP to switch language to ${languageCode.toUpperCase()} is ${otpCode}. It expires in 5 minutes.`
+            });
+        } catch (emailError) {
+            console.log("Email sending bypassed (mock credentials failed). OTP is:", otpCode);
+        }
 
         // For local development without real email, return the OTP in response (REMOVE IN PRODUCTION)
         res.json({ message: "OTP sent successfully to " + email, dev_otp: otpCode });
