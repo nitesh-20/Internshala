@@ -3,6 +3,15 @@ const router = express.Router();
 const OTP = require('../Model/OTP');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
+
+// Rate limiting for OTP requests (max 3 requests per 5 minutes per IP)
+const otpRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 5,
+  message: { error: "Too many OTP requests from this IP, please try again after 5 minutes" }
+});
 
 // Mock Nodemailer transport (for dev purposes, ideally use real credentials from .env)
 const transporter = nodemailer.createTransport({
@@ -15,16 +24,26 @@ const transporter = nodemailer.createTransport({
 });
 
 // Request OTP for French Language switch
-router.post('/request-otp', async (req, res) => {
+router.post('/request-otp', otpRateLimiter, async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) return res.status(400).json({ error: "Email is required" });
 
+        // Check cooldown (60 seconds)
+        const recentOtp = await OTP.findOne({ email, purpose: 'FRENCH_LANGUAGE' }).sort({ createdAt: -1 });
+        if (recentOtp) {
+            const timeSinceLastOtp = (Date.now() - recentOtp.createdAt.getTime()) / 1000;
+            if (timeSinceLastOtp < 60) {
+                return res.status(429).json({ error: `Please wait ${Math.ceil(60 - timeSinceLastOtp)} seconds before requesting a new OTP.` });
+            }
+        }
+
         const otpCode = crypto.randomInt(100000, 999999).toString();
+        const hashedOtp = await bcrypt.hash(otpCode, 10);
         
         await OTP.create({
             email,
-            otp: otpCode,
+            hashedOtp,
             purpose: 'FRENCH_LANGUAGE'
         });
 
@@ -50,9 +69,23 @@ router.post('/verify-otp', async (req, res) => {
         const { email, otp } = req.body;
         if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
 
-        const validOtp = await OTP.findOne({ email, otp, purpose: 'FRENCH_LANGUAGE' });
+        // Get latest OTP for this email
+        const validOtp = await OTP.findOne({ email, purpose: 'FRENCH_LANGUAGE' }).sort({ createdAt: -1 });
+        
         if (!validOtp) {
             return res.status(400).json({ error: "Invalid or expired OTP" });
+        }
+
+        if (validOtp.attempts >= 5) {
+            await OTP.deleteOne({ _id: validOtp._id });
+            return res.status(429).json({ error: "Maximum attempts reached. Please request a new OTP." });
+        }
+
+        const isMatch = await bcrypt.compare(otp, validOtp.hashedOtp);
+        if (!isMatch) {
+            validOtp.attempts += 1;
+            await validOtp.save();
+            return res.status(400).json({ error: `Invalid OTP. ${5 - validOtp.attempts} attempts remaining.` });
         }
 
         // Delete the OTP after successful verification

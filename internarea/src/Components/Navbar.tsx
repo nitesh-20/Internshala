@@ -25,6 +25,36 @@ const Navbar = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState("");
   const [pendingLang, setPendingLang] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [expireTimer, setExpireTimer] = useState(300);
+
+  // Timers Effect
+  React.useEffect(() => {
+    let interval: any;
+    if (showOtpModal) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
+        setExpireTimer((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [showOtpModal]);
+
+  const requestOtp = async (email: string) => {
+    setIsLoading(true);
+    try {
+      const res = await axios.post("http://localhost:5001/api/language/request-otp", { email });
+      toast.success(res.data.message || "OTP sent successfully!");
+      setResendTimer(60);
+      setExpireTimer(300);
+      setShowOtpModal(true);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Failed to send OTP");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handlelogin = async () => {
     try {
@@ -58,13 +88,12 @@ const Navbar = () => {
         return;
       }
       try {
-        toast.info("Sending OTP to your email...");
-        await axios.post("http://localhost:5001/api/language/request-otp", { email: user.email });
+        toast.info("Requesting OTP...");
         setPendingLang(lang);
-        setShowOtpModal(true);
         setShowLangMenu(false);
+        await requestOtp(user.email);
       } catch (error) {
-        toast.error("Failed to send OTP");
+        console.error(error);
       }
     } else {
       i18n.changeLanguage(lang);
@@ -73,13 +102,18 @@ const Navbar = () => {
   };
 
   const verifyOtpAndSwitch = async () => {
+    if (!otp) return;
+    setIsLoading(true);
     try {
       await axios.post("http://localhost:5001/api/language/verify-otp", { email: user?.email, otp });
       i18n.changeLanguage(pendingLang);
       setShowOtpModal(false);
+      setOtp("");
       toast.success("Language changed successfully!");
-    } catch (error) {
-      toast.error("Invalid or expired OTP");
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Invalid or expired OTP");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -129,13 +163,16 @@ const Navbar = () => {
                   <ChevronDown size={16} className={`transition-transform duration-200 ${showLangMenu ? 'rotate-180' : ''}`} />
                 </button>
                 {showLangMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg py-2 border border-gray-100 z-50">
-                    <button onClick={() => handleLanguageChange('en')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">English</button>
-                    <button onClick={() => handleLanguageChange('es')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">Español</button>
-                    <button onClick={() => handleLanguageChange('hi')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">हिंदी</button>
-                    <button onClick={() => handleLanguageChange('pt')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">Português</button>
-                    <button onClick={() => handleLanguageChange('zh')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">中文</button>
-                    <button onClick={() => handleLanguageChange('fr')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 font-semibold text-blue-600">Français (Secure)</button>
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg py-2 border border-gray-100 z-50">
+                    <button onClick={() => handleLanguageChange('en')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'en' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇺🇸 English</button>
+                    <button onClick={() => handleLanguageChange('es')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'es' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇪🇸 Español</button>
+                    <button onClick={() => handleLanguageChange('hi')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'hi' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇮🇳 हिंदी</button>
+                    <button onClick={() => handleLanguageChange('pt')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'pt' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇧🇷 Português</button>
+                    <button onClick={() => handleLanguageChange('zh')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'zh' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇨🇳 中文</button>
+                    <button onClick={() => handleLanguageChange('fr')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 flex items-center justify-between ${i18n.language === 'fr' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-semibold text-blue-600'}`}>
+                      <span>🇫🇷 Français</span>
+                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Secure</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -187,26 +224,42 @@ const Navbar = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Security Verification</h2>
-            <p className="text-gray-600 mb-6">Enter the OTP sent to your email to unlock the French language setting.</p>
+            <p className="text-gray-600 mb-2">Enter the OTP sent to your email to unlock the French language setting.</p>
+            
+            <div className="flex justify-between text-sm text-gray-500 mb-4">
+              <span>Expires in: <span className="font-mono font-semibold text-red-500">{Math.floor(expireTimer / 60)}:{(expireTimer % 60).toString().padStart(2, '0')}</span></span>
+              {resendTimer > 0 ? (
+                <span>Resend in {resendTimer}s</span>
+              ) : (
+                <button onClick={() => user && requestOtp(user.email)} disabled={isLoading} className="text-blue-600 hover:underline">Resend OTP</button>
+              )}
+            </div>
+
             <input
               type="text"
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
+              onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
               placeholder="Enter 6-digit OTP"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-center text-xl tracking-widest"
+              disabled={isLoading || expireTimer === 0}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-center text-xl tracking-widest disabled:bg-gray-100"
             />
             <div className="flex space-x-3">
               <button 
-                onClick={() => setShowOtpModal(false)}
-                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                onClick={() => {
+                  setShowOtpModal(false);
+                  setOtp("");
+                }}
+                disabled={isLoading}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button 
                 onClick={verifyOtpAndSwitch}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                disabled={isLoading || otp.length !== 6 || expireTimer === 0}
+                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-50 flex justify-center items-center"
               >
-                Verify & Switch
+                {isLoading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span> : 'Verify & Switch'}
               </button>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { updateProfile } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
+import { useTranslation } from "react-i18next";
 
 interface User {
   name: string;
@@ -14,6 +15,7 @@ interface User {
 }
 
 const index = () => {
+  const { t } = useTranslation();
   const user = useSelector(selectuser);
   const dispatch = useDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -119,7 +121,7 @@ const index = () => {
                     0
                   </span>
                   <p className="text-blue-600 text-sm mt-1">
-                    Active Applications
+                    {t("active_applications")}
                   </p>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4 text-center">
@@ -127,7 +129,7 @@ const index = () => {
                     0
                   </span>
                   <p className="text-green-600 text-sm mt-1">
-                    Accepted Applications
+                    {t("accepted_applications")}
                   </p>
                 </div>
               </div>
@@ -138,7 +140,7 @@ const index = () => {
                   href="/userapplication"
                   className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
                 >
-                  View Applications
+                  {t("view_applications")}
                   <ExternalLink className="ml-2 h-4 w-4" />
                 </Link>
               </div>
