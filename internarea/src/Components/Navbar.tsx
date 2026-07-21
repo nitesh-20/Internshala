@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { login, logout, selectuser } from "@/Feature/Userslice";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
-import { clearStoredAuth } from "@/lib/authStorage";
+import { clearStoredAuth, setStoredAuth } from "@/lib/authStorage";
 
 interface User {
   name: string;
@@ -77,28 +77,36 @@ const Navbar = () => {
     try {
       const res = await signInWithPopup(auth, provider);
       try {
-        await axios.post(`${apiBaseUrl}/api/auth/google-sync`, {
+        const syncRes = await axios.post(`${apiBaseUrl}/api/auth/google-sync`, {
           name: res.user.displayName,
           email: res.user.email,
           photo: res.user.photoURL,
           phoneNumber: res.user.phoneNumber,
         });
-      } catch (syncError) {
+        const authUser = {
+          uid: res.user.uid,
+          id: syncRes.data.user?.id,
+          photo: res.user.photoURL || "",
+          name: res.user.displayName || "",
+          email: res.user.email || "",
+          phoneNumber: res.user.phoneNumber || "",
+          authProvider: "google",
+          token: syncRes.data.token,
+        };
+        setStoredAuth(authUser);
+        dispatch(login(authUser));
+      } catch (syncError: any) {
         console.error("Google user sync failed:", syncError);
+        const fallbackGoogleUser = {
+          uid: res.user.uid,
+          photo: res.user.photoURL || "",
+          name: res.user.displayName || "",
+          email: res.user.email || "",
+          phoneNumber: res.user.phoneNumber || "",
+          authProvider: "google",
+        };
+        dispatch(login(fallbackGoogleUser));
       }
-
-      const authUser = {
-        uid: res.user.uid,
-        photo: res.user.photoURL,
-        name: res.user.displayName,
-        email: res.user.email,
-        phoneNumber: res.user.phoneNumber,
-        authProvider: "google",
-      };
-      clearStoredAuth();
-      dispatch(
-        login(authUser)
-      );
       toast.success("logged in successfully");
     } catch (error: any) {
       console.error(error);
@@ -180,6 +188,11 @@ const Navbar = () => {
               <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 font-medium bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
                 <Link href={"/resume"}>
                   <span>Resume Builder ✨</span>
+                </Link>
+              </button>
+              <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+                <Link href={"/community"}>
+                  <span>Community</span>
                 </Link>
               </button>
               <div className="flex items-center bg-gray-100 rounded-full px-4 py-2">

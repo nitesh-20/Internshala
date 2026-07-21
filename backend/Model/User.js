@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema(
     },
     photo: { type: String, default: "" },
     lastPasswordResetAt: { type: Date, default: null },
+    friendCount: { type: Number, default: 0 },
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "FriendRequest" }],
+    sentRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "FriendRequest" }],
   },
   {
     timestamps: true,

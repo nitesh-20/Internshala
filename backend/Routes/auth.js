@@ -238,6 +238,7 @@ router.post("/google-sync", async (req, res) => {
 
     return res.json({
       message: "Google user synchronized.",
+      token: issueToken(user),
       user: sanitizeUser(user),
     });
   } catch (error) {

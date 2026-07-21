@@ -7,6 +7,7 @@ import axios from "axios";
 import { updateProfile } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import { useTranslation } from "react-i18next";
+import { getApiBaseUrl, getAuthHeaders } from "@/lib/api";
 
 interface User {
   name: string;
@@ -21,14 +22,24 @@ const index = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [resumeData, setResumeData] = useState<any>(null);
+  const [friendCount, setFriendCount] = useState(0);
+  const apiBaseUrl = getApiBaseUrl();
 
   useEffect(() => {
     if (user?.email) {
-      axios.get(`http://localhost:5001/api/resume/${user.email}`)
+      axios.get(`${apiBaseUrl}/api/resume/${user.email}`)
         .then(res => setResumeData(res.data))
         .catch(err => console.log("No premium resume found or error fetching."));
     }
-  }, [user]);
+  }, [user, apiBaseUrl]);
+
+  useEffect(() => {
+    const headers = getAuthHeaders();
+    if (!headers.Authorization) return;
+    axios.get(`${apiBaseUrl}/api/community/me`, { headers })
+      .then((res) => setFriendCount(res.data.user?.friendCount || res.data.friends?.length || 0))
+      .catch(() => setFriendCount(0));
+  }, [apiBaseUrl]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -40,7 +51,7 @@ const index = () => {
 
     try {
       // 1. Upload to backend
-      const res = await axios.post("http://localhost:5001/api/upload", formData, {
+      const res = await axios.post(`${apiBaseUrl}/api/upload`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const newPhotoUrl = res.data.url;
@@ -135,10 +146,10 @@ const index = () => {
                 </div>
                 <div className="bg-green-50 rounded-lg p-4 text-center">
                   <span className="text-green-600 font-semibold text-2xl">
-                    0
+                    {friendCount}
                   </span>
                   <p className="text-green-600 text-sm mt-1">
-                    {t("accepted_applications")}
+                    Friends
                   </p>
                 </div>
               </div>
