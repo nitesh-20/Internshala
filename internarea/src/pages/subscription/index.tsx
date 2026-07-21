@@ -6,6 +6,7 @@ import axios from 'axios';
 import Script from 'next/script';
 import { CheckCircle2, Crown, Zap, Shield, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { getAuthHeaders } from '@/lib/api';
 
 declare global {
   interface Window {
@@ -39,7 +40,7 @@ const SubscriptionPage = () => {
       setIsLoading(true);
       const [plansRes, currentRes] = await Promise.all([
         axios.get(`${apiBaseUrl}/api/subscription/plans`),
-        axios.get(`${apiBaseUrl}/api/subscription/current`, { withCredentials: true })
+        axios.get(`${apiBaseUrl}/api/subscription/current`, { headers: getAuthHeaders() })
       ]);
       setPlans(plansRes.data);
       setCurrentSub(currentRes.data);
@@ -67,7 +68,7 @@ const SubscriptionPage = () => {
     setIsCheckoutLoading(true);
     try {
       // 1. Create Order
-      const orderRes = await axios.post(`${apiBaseUrl}/api/subscription/create-order`, { plan: planName }, { withCredentials: true });
+      const orderRes = await axios.post(`${apiBaseUrl}/api/subscription/create-order`, { plan: planName }, { headers: getAuthHeaders() });
       const order = orderRes.data;
 
       // 2. Open Razorpay
@@ -86,7 +87,7 @@ const SubscriptionPage = () => {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               plan: planName
-            }, { withCredentials: true });
+            }, { headers: getAuthHeaders() });
             
             toast.success("Subscription upgraded successfully! Invoice sent to your email.");
             setCurrentSub(verifyRes.data.subscription);
