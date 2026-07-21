@@ -87,7 +87,11 @@ router.post('/create-order', async (req, res) => {
         });
     } catch (error) {
         console.error("Error creating Razorpay order:", error);
-        res.status(500).json({ error: error.message || "Failed to create order" });
+        const isConfigIssue = String(error.message || '').toLowerCase().includes('razorpay credentials are missing');
+        const message = isConfigIssue
+            ? error.message
+            : "Unable to create Razorpay order. Please verify your Razorpay keys and server network access.";
+        res.status(500).json({ error: message });
     }
 });
 
