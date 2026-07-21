@@ -1,9 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const application = require("../Model/Application");
+const { ensureValidSubscription } = require("./subscription");
 
 router.post("/", async (req, res) => {
-  const applicationipdata = new application({
+  try {
+    const userId = req.body.user?.id || req.body.user?._id || req.body.user?.uid;
+    if (userId) {
+      const sub = await ensureValidSubscription(userId);
+      if (sub.applicationLimit !== -1 && sub.applicationsUsed >= sub.applicationLimit) {
+        return res.status(403).json({ error: "You have reached your monthly internship application limit. Please upgrade your plan." });
+      }
+      sub.applicationsUsed += 1;
+      await sub.save();
+    }
+
+    const applicationipdata = new application({
     company: req.body.company,
     category: req.body.category,
     coverLetter: req.body.coverLetter,
@@ -11,14 +23,12 @@ router.post("/", async (req, res) => {
     Application: req.body.Application,
     body: req.body.body,
   });
-  await applicationipdata
-    .save()
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
+    await applicationipdata.save();
+    res.status(200).send(applicationipdata);
+  } catch (error) {
+    console.error("Application Error:", error);
+    res.status(500).json({ error: "internal server error" });
+  }
 });
 router.get("/", async (req, res) => {
   try {

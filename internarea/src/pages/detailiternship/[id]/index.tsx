@@ -129,9 +129,14 @@ const index = () => {
       await axios.post("http://localhost:5001/api/application",applicationdata)
       toast.success("Application submit successfully")
       router.push('/internship')
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      toast.error("Failed to submit application")
+      if (error.response?.status === 403 && error.response?.data?.error?.includes("limit")) {
+        toast.error(error.response.data.error);
+        router.push("/subscription");
+      } else {
+        toast.error("Failed to submit application");
+      }
     }
   }
   return (

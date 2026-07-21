@@ -177,9 +177,14 @@ const index = () => {
       );
       toast.success("Application submit successfully");
       router.push("/job");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to submit application");
+      if (error.response?.status === 403 && error.response?.data?.error?.includes("limit")) {
+        toast.error(error.response.data.error);
+        router.push("/subscription");
+      } else {
+        toast.error("Failed to submit application");
+      }
     }
   };
   return (

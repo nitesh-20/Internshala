@@ -274,6 +274,11 @@ const Navbar = () => {
                   <span>Resume Builder ✨</span>
                 </Link>
               </button>
+              <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 font-medium bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
+                <Link href={"/subscription"}>
+                  <span>Subscription 👑</span>
+                </Link>
+              </button>
               <button className="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
                 <Link href={"/community"}>
                   <span>Community</span>

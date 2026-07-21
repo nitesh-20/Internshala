@@ -27,6 +27,16 @@ type LoginActivityItem = {
   createdAt: string;
 };
 
+type PaymentItem = {
+  _id: string;
+  plan: string;
+  amount: number;
+  razorpayPaymentId: string;
+  transactionStatus: string;
+  paidAt: string;
+  invoiceNumber: string;
+};
+
 const index = () => {
   const { t } = useTranslation();
   const user = useSelector(selectuser);
@@ -39,6 +49,12 @@ const index = () => {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotalPages, setHistoryTotalPages] = useState(1);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  
+  const [paymentHistory, setPaymentHistory] = useState<PaymentItem[]>([]);
+  const [paymentPage, setPaymentPage] = useState(1);
+  const [paymentTotalPages, setPaymentTotalPages] = useState(1);
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+
   const apiBaseUrl = getApiBaseUrl();
 
   useEffect(() => {
@@ -73,6 +89,21 @@ const index = () => {
       .catch(() => setLoginHistory([]))
       .finally(() => setIsHistoryLoading(false));
   }, [apiBaseUrl, historyPage]);
+
+  useEffect(() => {
+    const headers = getAuthHeaders();
+    if (!headers.Authorization) return;
+
+    setIsPaymentLoading(true);
+    axios
+      .get(`${apiBaseUrl}/api/subscription/history?page=${paymentPage}&limit=10`, { headers })
+      .then((res) => {
+        setPaymentHistory(res.data.payments || []);
+        setPaymentTotalPages(res.data.pagination?.totalPages || 1);
+      })
+      .catch(() => setPaymentHistory([]))
+      .finally(() => setIsPaymentLoading(false));
+  }, [apiBaseUrl, paymentPage]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -282,6 +313,95 @@ const index = () => {
                         )
                       }
                       disabled={historyPage >= historyTotalPages || isHistoryLoading}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment History */}
+              <div className="pt-6">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-xl font-semibold text-slate-900">Payment History</h2>
+                      <p className="mt-1 text-sm text-slate-500">
+                        View your subscription payments.
+                      </p>
+                    </div>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500 shadow-sm">
+                      Page {paymentPage} of {paymentTotalPages}
+                    </span>
+                  </div>
+
+                  <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                    {isPaymentLoading ? (
+                      <div className="px-4 py-10 text-center text-sm text-slate-500">
+                        Loading payment history...
+                      </div>
+                    ) : paymentHistory.length === 0 ? (
+                      <div className="px-4 py-10 text-center text-sm text-slate-500">
+                        No payment history available yet.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-200 text-sm">
+                          <thead className="bg-slate-50 text-left text-slate-500">
+                            <tr>
+                              <th className="px-4 py-3 font-medium">Date</th>
+                              <th className="px-4 py-3 font-medium">Invoice</th>
+                              <th className="px-4 py-3 font-medium">Plan</th>
+                              <th className="px-4 py-3 font-medium">Amount</th>
+                              <th className="px-4 py-3 font-medium">Transaction ID</th>
+                              <th className="px-4 py-3 font-medium">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-slate-700">
+                            {paymentHistory.map((entry) => (
+                              <tr key={entry._id}>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  {new Date(entry.paidAt || Date.now()).toLocaleDateString()}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">{entry.invoiceNumber}</td>
+                                <td className="px-4 py-3 whitespace-nowrap">{entry.plan}</td>
+                                <td className="px-4 py-3 whitespace-nowrap">₹{entry.amount}</td>
+                                <td className="px-4 py-3 whitespace-nowrap">{entry.razorpayPaymentId}</td>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                  <span
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                      entry.transactionStatus === "success"
+                                        ? "bg-emerald-100 text-emerald-700"
+                                        : "bg-rose-100 text-rose-700"
+                                    }`}
+                                  >
+                                    {entry.transactionStatus}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-end gap-3">
+                    <button
+                      onClick={() => setPaymentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={paymentPage === 1 || isPaymentLoading}
+                      className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() =>
+                        setPaymentPage((prev) =>
+                          paymentTotalPages > 0 ? Math.min(prev + 1, paymentTotalPages) : prev
+                        )
+                      }
+                      disabled={paymentPage >= paymentTotalPages || isPaymentLoading}
                       className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
                     >
                       Next

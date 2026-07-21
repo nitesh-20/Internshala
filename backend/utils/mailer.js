@@ -27,7 +27,18 @@ const sendEmail = async ({ to, subject, text }) => {
   });
 };
 
+const sendHtmlEmail = async ({ to, subject, html }) => {
+  const transporter = getTransporter();
+  return transporter.sendMail({
+    from: `"Internshala Billing" <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    html,
+  });
+};
+
 module.exports = {
   hasMailConfig,
   sendEmail,
+  sendHtmlEmail,
 };
