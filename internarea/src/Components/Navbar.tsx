@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import logo from "../Assets/logo.png";
 import Link from "next/link";
-import { auth, provider } from "../firebase/firebase";
+import { auth, provider, firebaseInitError } from "../firebase/firebase";
 import { ChevronDown, Search, Globe } from "lucide-react";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { toast } from "react-toastify";
@@ -64,6 +64,13 @@ const Navbar = () => {
   };
 
   const handlelogin = async () => {
+    if (!auth) {
+      toast.error(
+        firebaseInitError?.message || "Firebase auth is not configured correctly."
+      );
+      return;
+    }
+
     try {
       const res = await signInWithPopup(auth, provider);
       dispatch(
@@ -83,6 +90,11 @@ const Navbar = () => {
   };
 
   const handlelogout = () => {
+    if (!auth) {
+      dispatch(logout());
+      return;
+    }
+
     signOut(auth);
     dispatch(logout());
     toast.success("logged out");

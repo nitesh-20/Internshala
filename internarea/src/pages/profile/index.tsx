@@ -46,7 +46,7 @@ const index = () => {
       const newPhotoUrl = res.data.url;
 
       // 2. Update Firebase Auth Profile
-      if (auth.currentUser) {
+      if (auth?.currentUser) {
         await updateProfile(auth.currentUser, {
           photoURL: newPhotoUrl,
         });

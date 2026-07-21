@@ -15,9 +15,41 @@ const firebaseConfig = {
   measurementId: clean(process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || process.env.NEXT_PUBLIC_APP_FB_MEASUREMENT_ID || "G-V5KTVJ249V")
 };
 
-// Initialize Firebase safely
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
+const hasRequiredConfig = [
+  firebaseConfig.apiKey,
+  firebaseConfig.authDomain,
+  firebaseConfig.projectId,
+  firebaseConfig.appId,
+].every(Boolean);
+
+let app = null;
+let auth = null;
+let firebaseInitError = null;
+/** @type {import("firebase/app").FirebaseApp | null} */
+let firebaseApp = null;
+/** @type {import("firebase/auth").Auth | null} */
+let firebaseAuth = null;
+/** @type {Error | null} */
+let initError = null;
+
+try {
+  if (!hasRequiredConfig) {
+    throw new Error("Firebase configuration is incomplete.");
+  }
+
+  firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+  firebaseAuth = getAuth(firebaseApp);
+} catch (error) {
+  initError = error instanceof Error ? error : new Error("Firebase initialization failed.");
+  if (typeof window !== "undefined") {
+    console.error("Firebase initialization failed:", initError);
+  }
+}
+
+app = firebaseApp;
+auth = firebaseAuth;
+firebaseInitError = initError;
+
 const provider = new GoogleAuthProvider();
 
-export { auth, provider };
+export { app, auth, provider, firebaseInitError };

@@ -20,7 +20,12 @@ export default function App({ Component, pageProps }: AppProps) {
   function AuthListener() {
     const dispatch = useDispatch();
     useEffect(() => {
-      auth.onAuthStateChanged((authuser) => {
+      if (!auth) {
+        dispatch(logout());
+        return;
+      }
+
+      const unsubscribe = auth.onAuthStateChanged((authuser) => {
         if (authuser) {
           dispatch(
             login({
@@ -35,6 +40,8 @@ export default function App({ Component, pageProps }: AppProps) {
           dispatch(logout());
         }
       });
+
+      return unsubscribe;
     }, [dispatch]);
     return null;
   }
