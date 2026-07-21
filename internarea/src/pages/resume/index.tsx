@@ -198,6 +198,36 @@ const ResumeBuilder = () => {
       const orderRes = await axios.post("http://localhost:5001/api/resume/create-order", { email: user.email });
       const order = orderRes.data;
 
+      const handlerFn = async function (response: any) {
+        toast.info("Payment verified, generating professional ATS PDF...");
+        try {
+          const verifyRes = await axios.post("http://localhost:5001/api/resume/verify-and-generate", {
+            email: user.email,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            resumeData: getFullResumeData()
+          });
+          setIsPaid(true);
+          setPdfUrl(verifyRes.data.pdfUrl);
+          toast.success("Resume generated successfully!");
+        } catch (err: any) {
+          toast.error("Failed to generate resume after payment.");
+        }
+      };
+
+      // Mock payment bypass
+      if (order.id.startsWith("order_mock_")) {
+          toast.info("Mocking payment success (No real API keys found).");
+          await handlerFn({
+              razorpay_order_id: order.id,
+              razorpay_payment_id: "pay_mock_" + Date.now(),
+              razorpay_signature: "mock_signature"
+          });
+          setIsLoading(false);
+          return;
+      }
+
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_dummy_key_id', 
         amount: order.amount,
@@ -205,23 +235,7 @@ const ResumeBuilder = () => {
         name: "Internshala Premium",
         description: "Premium Resume Generation",
         order_id: order.id,
-        handler: async function (response: any) {
-          toast.info("Payment verified, generating professional ATS PDF...");
-          try {
-            const verifyRes = await axios.post("http://localhost:5001/api/resume/verify-and-generate", {
-              email: user.email,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              resumeData: getFullResumeData()
-            });
-            setIsPaid(true);
-            setPdfUrl(verifyRes.data.pdfUrl);
-            toast.success("Resume generated successfully!");
-          } catch (err: any) {
-            toast.error("Failed to generate resume after payment.");
-          }
-        },
+        handler: handlerFn,
         prefill: { name: user.name, email: user.email },
         theme: { color: "#2563EB" }
       };
