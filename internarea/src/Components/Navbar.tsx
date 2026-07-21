@@ -125,7 +125,7 @@ const Navbar = () => {
                   className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 px-3 py-2 rounded-md transition-colors"
                 >
                   <Globe size={20} />
-                  <span className="uppercase text-sm font-medium">{i18n.language || 'EN'}</span>
+                  <span suppressHydrationWarning className="uppercase text-sm font-medium">{i18n.language || 'EN'}</span>
                   <ChevronDown size={16} className={`transition-transform duration-200 ${showLangMenu ? 'rotate-180' : ''}`} />
                 </button>
                 {showLangMenu && (
