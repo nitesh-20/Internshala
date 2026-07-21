@@ -1,374 +1,272 @@
 import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import "swiper/css/effect-fade";
 import {
-  ArrowUpRight,
-  Banknote,
+  ArrowRight,
+  Briefcase,
+  Building2,
   Calendar,
   ChevronRight,
+  GraduationCap,
   MapPin,
+  Search,
+  Star,
+  TrendingUp,
+  Users
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 
-export default function SvgSlider() {
+const featuredCompanies = [
+  { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
+  { name: "Microsoft", logo: "https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg" },
+  { name: "Amazon", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" },
+  { name: "Adobe", logo: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Adobe_Systems_logo_and_wordmark.svg" },
+  { name: "Razorpay", logo: "https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" },
+  { name: "Swiggy", logo: "https://upload.wikimedia.org/wikipedia/en/1/12/Swiggy_logo.svg" }
+];
+
+const testimonials = [
+  {
+    name: "Aarav Sharma",
+    role: "Software Engineer at Google",
+    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=150&h=150",
+    quote: "InternArea helped me land my dream internship at Google. The premium Resume Builder was a game-changer for my applications."
+  },
+  {
+    name: "Priya Patel",
+    role: "Product Manager at Microsoft",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150&h=150",
+    quote: "The interface is so clean and finding remote opportunities is incredibly easy. I highly recommend the subscription plan."
+  },
+  {
+    name: "Rohan Gupta",
+    role: "Data Scientist at Amazon",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150&h=150",
+    quote: "I found my first full-time role through this platform. The community and tracking features kept me organized throughout."
+  }
+];
+
+const popularCategories = [
+  { name: "Software Engineering", icon: <Briefcase size={20} />, count: "1,200+ Jobs" },
+  { name: "Data Science", icon: <TrendingUp size={20} />, count: "850+ Jobs" },
+  { name: "Product Management", icon: <Users size={20} />, count: "420+ Jobs" },
+  { name: "UI/UX Design", icon: <Star size={20} />, count: "650+ Jobs" },
+  { name: "Marketing", icon: <Building2 size={20} />, count: "930+ Jobs" },
+  { name: "Finance", icon: <Calendar size={20} />, count: "310+ Jobs" }
+];
+
+export default function Home() {
   const { t } = useTranslation();
-  const categories = [
-    "Big Brands",
-    "Work From Home",
-    "Part-time",
-    "MBA",
-    "Engineering",
-    "Media",
-    "Design",
-    "Data Science",
-  ];
-  // const internships = [
-  //   {
-  //     _id: "1",
-  //     title: "Software Engineering Intern",
-  //     company: "Google",
-  //     location: "Remote",
-  //     stipend: "$1,500/month",
-  //     duration: "3 months",
-  //     category: "Engineering",
-  //   },
-  //   {
-  //     _id: "2",
-  //     title: "Marketing Intern",
-  //     company: "Meta",
-  //     location: "New York",
-  //     stipend: "$1,200/month",
-  //     duration: "6 months",
-  //     category: "Media",
-  //   },
-  //   {
-  //     _id: "3",
-  //     title: "Graphic Design Intern",
-  //     company: "Adobe",
-  //     location: "San Francisco",
-  //     stipend: "$1,000/month",
-  //     duration: "4 months",
-  //     category: "Design",
-  //   },
-  // ];
+  const [internships, setInternships] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // const jobs = [
-  //   {
-  //     _id: "101",
-  //     title: "Frontend Developer",
-  //     company: "Amazon",
-  //     location: "Seattle",
-  //     CTC: "$100K/year",
-  //     Experience: "2+ years",
-  //     category: "Engineering",
-  //   },
-  //   {
-  //     _id: "102",
-  //     title: "Data Analyst",
-  //     company: "Microsoft",
-  //     location: "Remote",
-  //     CTC: "$90K/year",
-  //     Experience: "1+ years",
-  //     category: "Data Science",
-  //   },
-  //   {
-  //     _id: "103",
-  //     title: "UX Designer",
-  //     company: "Apple",
-  //     location: "California",
-  //     CTC: "$110K/year",
-  //     Experience: "3+ years",
-  //     category: "Design",
-  //   },
-  // ];
-  const slides = [
-    {
-      pattern: "pattern-1",
-      title: "Start Your Career Journey",
-      bgColor: "bg-indigo-600",
-    },
-    {
-      pattern: "pattern-2",
-      title: "Learn From The Best",
-      bgColor: "bg-blue-600",
-    },
-    {
-      pattern: "pattern-3",
-      title: "Grow Your Skills",
-      bgColor: "bg-purple-600",
-    },
-    {
-      pattern: "pattern-4",
-      title: "Connect With Top Companies",
-      bgColor: "bg-teal-600",
-    },
-  ];
-
-  const stats = [
-    { number: "300K+", label: t("companies_hiring") },
-    { number: "10K+", label: t("new_openings") },
-    { number: "21Mn+", label: t("active_students") },
-    { number: "600K+", label: t("learners") },
-  ];
-  const [internships, setinternship] = useState<any>([]);
-  const [jobs, setjob] = useState<any>([]);
   useEffect(() => {
-    const fetchdata = async () => {
+    const fetchData = async () => {
       try {
-        const [internshipres, jobres] = await Promise.all([
-          axios.get("http://localhost:5001/api/internship"),
-          axios.get("http://localhost:5001/api/job"),
+        const [internshipRes, jobRes] = await Promise.all([
+          axios.get("http://localhost:5001/api/internship").catch(() => ({ data: [] })),
+          axios.get("http://localhost:5001/api/job").catch(() => ({ data: [] })),
         ]);
-        setinternship(internshipres.data);
-        setjob(jobres.data);
+        setInternships(internshipRes.data.slice(0, 6)); // Top 6
+        setJobs(jobRes.data.slice(0, 6)); // Top 6
       } catch (error) {
-        console.log(error);
+        console.log("Failed to fetch data", error);
       }
     };
-    fetchdata();
+    fetchData();
   }, []);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const filteredInternships = internships.filter(
-    (item: any) => !selectedCategory || item.category === selectedCategory
-  );
-  const filteredJobs = jobs.filter(
-    (item: any) => !selectedCategory || item.category === selectedCategory
-  );
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* hero section */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          {t("make_dream_career")}
-        </h1>
-        <p className="text-xl text-gray-600">{t("trending_internarea")}</p>
-      </div>
-      {/* Swiper section */}
-      <div className="mb-16">
-        <Swiper
-          modules={[Navigation, Pagination, Autoplay]}
-          spaceBetween={30}
-          slidesPerView={1}
-          navigation
-          pagination={{ clickable: true }}
-          autoplay={{ delay: 5000 }}
-          className="rounded-xl overflow-hidden shadow-lg"
-        >
-          {slides.map((slide, index) => (
-            <SwiperSlide key={index}>
-              <div className={`relative h-[400px] ${slide.bgColor}`}>
-                {/* SVG Pattern Background */}
-                <div className="absolute inset-0 opacity-20">
-                  <svg
-                    className="w-full h-full"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    {slide.pattern === "pattern-1" && (
-                      <pattern
-                        id="pattern-1"
-                        x="0"
-                        y="0"
-                        width="20"
-                        height="20"
-                        patternUnits="userSpaceOnUse"
-                      >
-                        <circle cx="10" cy="10" r="3" fill="white" />
-                      </pattern>
-                    )}
-                    {slide.pattern === "pattern-2" && (
-                      <pattern
-                        id="pattern-2"
-                        x="0"
-                        y="0"
-                        width="40"
-                        height="40"
-                        patternUnits="userSpaceOnUse"
-                      >
-                        <rect
-                          x="15"
-                          y="15"
-                          width="10"
-                          height="10"
-                          fill="white"
-                        />
-                      </pattern>
-                    )}
-                    {slide.pattern === "pattern-3" && (
-                      <pattern
-                        id="pattern-3"
-                        x="0"
-                        y="0"
-                        width="40"
-                        height="40"
-                        patternUnits="userSpaceOnUse"
-                      >
-                        <path d="M0 20 L20 0 L40 20 L20 40 Z" fill="white" />
-                      </pattern>
-                    )}
-                    {slide.pattern === "pattern-4" && (
-                      <pattern
-                        id="pattern-4"
-                        x="0"
-                        y="0"
-                        width="60"
-                        height="60"
-                        patternUnits="userSpaceOnUse"
-                      >
-                        <path d="M30 5 L55 30 L30 55 L5 30 Z" fill="white" />
-                      </pattern>
-                    )}
-                    <rect
-                      x="0"
-                      y="0"
-                      width="100%"
-                      height="100%"
-                      fill={`url(#${slide.pattern})`}
-                    />
-                  </svg>
-                </div>
 
-                {/* Content */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <h2 className="text-4xl font-bold text-white">
-                    {slide.title}
-                  </h2>
-                </div>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-      {/* Category section */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          {t("latest_internships")}
-        </h2>
-        <div className="flex flex-wrap gap-4">
-          <span className="text-gray-700 font-medium">{t("popular_categories")}</span>
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full transition-colors ${
-                selectedCategory === category
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {category}
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans">
+      
+      {/* Hero Section */}
+      <section className="relative pt-20 pb-32 overflow-hidden bg-white">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-semibold text-sm mb-8 animate-fade-in-up">
+            <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-pulse"></span>
+            Over 10,000+ opportunities waiting for you
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-8 leading-tight">
+            Launch your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">dream career</span> <br className="hidden md:block" /> today.
+          </h1>
+          
+          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-12">
+            Discover premium internships and jobs from top-tier companies. Build your resume, track your applications, and get hired faster.
+          </p>
+
+          <div className="max-w-3xl mx-auto bg-white p-2 md:p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-100 flex flex-col md:flex-row gap-3">
+            <div className="flex-1 flex items-center bg-slate-50 rounded-xl px-4 py-3 md:py-0 border border-slate-100 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
+              <Search className="text-slate-400 w-5 h-5" />
+              <input 
+                type="text" 
+                placeholder="Job title, company, or keywords" 
+                className="w-full bg-transparent border-none outline-none px-3 text-slate-700 placeholder-slate-400"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="flex-1 flex items-center bg-slate-50 rounded-xl px-4 py-3 md:py-0 border border-slate-100 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-all">
+              <MapPin className="text-slate-400 w-5 h-5" />
+              <input 
+                type="text" 
+                placeholder="City, state, or 'Remote'" 
+                className="w-full bg-transparent border-none outline-none px-3 text-slate-700 placeholder-slate-400"
+              />
+            </div>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2">
+              Search <ArrowRight size={18} />
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Trusted Companies Strip */}
+      <section className="py-10 border-y border-slate-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-8">Trusted by industry leaders</p>
+          <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+            {featuredCompanies.map((company, idx) => (
+              <img key={idx} src={company.logo} alt={company.name} className="h-8 md:h-10 object-contain hover:scale-110 transition-transform duration-300" />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Popular Categories */}
+      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-end mb-12">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-900 mb-2">Explore Categories</h2>
+            <p className="text-slate-500">Find the role that perfectly matches your skills.</p>
+          </div>
+          <Link href="/job" className="hidden md:flex items-center gap-1 text-blue-600 font-semibold hover:text-blue-700 group">
+            View all categories <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {popularCategories.map((cat, idx) => (
+            <div key={idx} className="group bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 cursor-pointer">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                {cat.icon}
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">{cat.name}</h3>
+              <p className="text-slate-500 flex items-center gap-2">
+                {cat.count} <ArrowRight size={14} className="opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-blue-600" />
+              </p>
+            </div>
           ))}
         </div>
-      </div>
-      {/* INternship grid   */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-        {filteredInternships.map((internship: any, index: any) => (
-          <div
-            key={index}
-            className="bg-white rounded-lg shadow-md p-6 transition-transform hover:transform hover:scale-105"
-          >
-            <div className="flex items-center gap-2 text-blue-600 mb-4">
-              <ArrowUpRight size={20} />
-              <span className="font-medium">Actively Hiring</span>
+      </section>
+
+      {/* Featured Internships */}
+      <section className="py-24 bg-white border-y border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h2 className="text-3xl font-bold text-slate-900 mb-2">Premium Internships</h2>
+              <p className="text-slate-500">Kickstart your career with top opportunities.</p>
             </div>
-            <h3 className="text-lg font-semibold mb-2 text-gray-800">
-              {internship.title}
-            </h3>
-            <p className="text-gray-500 mb-4">{internship.company}</p>
-            <div className="space-y-3 text-gray-600">
-              <div className="flex items-center gap-2">
-                <MapPin size={18} />
-                <span>{internship.location}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Banknote size={18} />
-                <span>{internship.stipend}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar size={18} />
-                <span>{internship.duration}</span>
+            <Link href="/internship" className="hidden md:flex items-center gap-1 text-blue-600 font-semibold hover:text-blue-700 group">
+              Browse internships <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          {internships.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {internships.map((internship) => (
+                <div key={internship._id} className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:border-blue-300 transition-all duration-300 group flex flex-col">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xl font-bold text-slate-400 overflow-hidden">
+                      {internship.company.charAt(0)}
+                    </div>
+                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100 uppercase tracking-wide">
+                      Actively Hiring
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">{internship.title}</h3>
+                  <p className="text-slate-500 mb-6 font-medium">{internship.company}</p>
+                  
+                  <div className="space-y-3 mb-8 flex-grow">
+                    <div className="flex items-center gap-3 text-slate-600 text-sm">
+                      <MapPin size={16} className="text-slate-400" /> {internship.location}
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-600 text-sm">
+                      <Briefcase size={16} className="text-slate-400" /> {internship.stipend}
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-600 text-sm">
+                      <Calendar size={16} className="text-slate-400" /> {internship.duration}
+                    </div>
+                  </div>
+                  
+                  <Link href={`/detailiternship/${internship._id}`} className="w-full py-3 px-4 bg-slate-50 text-blue-700 font-semibold text-center rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    View Details
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 bg-slate-50 rounded-2xl border border-slate-200 border-dashed">
+              <h3 className="text-lg font-bold text-slate-700 mb-2">No internships found</h3>
+              <p className="text-slate-500">Check back later for premium opportunities.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-bold text-slate-900 mb-12 text-center">Success Stories</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {testimonials.map((test, idx) => (
+            <div key={idx} className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 relative">
+              <div className="text-4xl text-blue-200 absolute top-6 right-6 font-serif">"</div>
+              <p className="text-slate-600 italic mb-8 relative z-10 leading-relaxed">
+                "{test.quote}"
+              </p>
+              <div className="flex items-center gap-4">
+                <img src={test.image} alt={test.name} className="w-12 h-12 rounded-full object-cover shadow-sm" />
+                <div>
+                  <h4 className="font-bold text-slate-900">{test.name}</h4>
+                  <p className="text-xs text-slate-500">{test.role}</p>
+                </div>
               </div>
             </div>
-            <div className="flex items-center justify-between mt-6">
-              <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
-                Internship
-              </span>
-              <Link
-                href={`/detailiternship/${internship._id}`}
-                className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
-              >
-                {t("view_details")}
-                <ChevronRight size={16} />
+          ))}
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 bg-blue-600 rounded-3xl overflow-hidden relative shadow-2xl">
+          <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 translate-y-12 -translate-x-12 w-64 h-64 bg-indigo-900/20 rounded-full blur-2xl"></div>
+          
+          <div className="relative z-10 py-16 px-8 md:px-16 text-center md:text-left flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="max-w-xl">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">Ready to supercharge your career?</h2>
+              <p className="text-blue-100 text-lg">Join over 600,000+ professionals discovering premium jobs and building outstanding resumes.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+              <Link href="/register" className="bg-white text-blue-700 hover:bg-blue-50 px-8 py-4 rounded-xl font-bold transition-all hover:shadow-lg text-center whitespace-nowrap">
+                Create Free Account
               </Link>
             </div>
           </div>
-        ))}
-      </div>
-      {/* Jobs grid   */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">{t("latest_jobs")}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {filteredJobs.map((job: any, index: any) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-md p-6 transition-transform hover:transform hover:scale-105"
-            >
-              <div className="flex items-center gap-2 text-blue-600 mb-4">
-                <ArrowUpRight size={20} />
-                <span className="font-medium">Actively Hiring</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 text-gray-800">
-                {job.title}
-              </h3>
-              <p className="text-gray-500 mb-4">{job.company}</p>
-              <div className="space-y-3 text-gray-600">
-                <div className="flex items-center gap-2">
-                  <MapPin size={18} />
-                  <span>{job.location}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Banknote size={18} />
-                  <span>{job.CTC}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar size={18} />
-                  <span>{job.Experience}</span>
-                </div>
-              </div>
-              <div className="flex items-center justify-between mt-6">
-                <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
-                  Jobs
-                </span>
-                <Link
-                  href={`/detailInternship?q=${job._id}`}
-                  className="text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                >
-                  {t("view_details")}
-                  <ChevronRight size={16} />
-                </Link>
-              </div>
-            </div>
-          ))}
         </div>
-      </div>
-      {/* Stat Section  */}
-      <div className="bg-white rounded-xl shadow-lg p-8 mb-16">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((stat, index) => (
-            <div key={index} className="text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">
-                {stat.number}
-              </div>
-              <div className="text-gray-600">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      </section>
+
     </div>
   );
 }
