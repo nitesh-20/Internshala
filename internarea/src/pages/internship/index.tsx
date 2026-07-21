@@ -1,76 +1,52 @@
 import axios from "axios";
 import {
   ArrowUpRight,
+  Briefcase,
+  Building2,
   Calendar,
   Clock,
   DollarSign,
   Filter,
-  Pin,
-  PlayCircle,
-  Pointer,
+  MapPin,
+  Search,
   X,
+  Zap
 } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-// const internshipData = [
-//   {
-//     _id: "1",
-//     title: "Frontend Developer Intern",
-//     company: "TechCorp",
-//     StartDate: "April 2025",
-//     Duration: "3 Months",
-//     stipend: "$500/month",
-//     category: "Web Development",
-//     location: "New York",
-//   },
-//   {
-//     _id: "2",
-//     title: "Data Science Intern",
-//     company: "DataTech",
-//     StartDate: "May 2025",
-//     Duration: "6 Months",
-//     stipend: "$800/month",
-//     category: "Data Science",
-//     location: "San Francisco",
-//   },
-//   {
-//     _id: "3",
-//     title: "Marketing Intern",
-//     company: "MarketPro",
-//     StartDate: "June 2025",
-//     Duration: "4 Months",
-//     stipend: "$400/month",
-//     category: "Marketing",
-//     location: "Los Angeles",
-//   },
-// ];
-const index = () => {
+
+const Index = () => {
   const { t } = useTranslation();
-  const [filteredInternships, setfilteredInternships] = useState<any>([]);
-  const [isFiltervisible, setisFiltervisible] = useState(false);
-  const [filter, setfilters] = useState({
+  const [filteredInternships, setFilteredInternships] = useState<any>([]);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
+  const [filter, setFilters] = useState({
     category: "",
     location: "",
     workFromHome: false,
     partTime: false,
     stipend: 50,
   });
-  const [internshipData,setinternship]=useState<any>([])
-  useEffect(()=>{
-    const fetchdata=async()=>{
-      try {
-        const res=await axios.get( "http://localhost:5001/api/internship")     
-        setinternship(res.data)
-        setfilteredInternships(res.data)
-      } catch (error) {
-        console.log(error)
-      }
-    }
-    fetchdata()
-  },[])
+  const [internshipData, setInternshipData] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    const filtered = internshipData.filter((internship:any) => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get("http://localhost:5001/api/internship");
+        setInternshipData(res.data);
+        setFilteredInternships(res.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const filtered = internshipData.filter((internship: any) => {
       const matchesCategory = internship.category
         .toLowerCase()
         .includes(filter.category.toLowerCase());
@@ -79,17 +55,19 @@ const index = () => {
         .includes(filter.location.toLowerCase());
       return matchesCategory && matchesLocation;
     });
-    setfilteredInternships(filtered);
+    setFilteredInternships(filtered);
   }, [filter, internshipData]);
-  const handlefilterchange = (e: any) => {
+
+  const handleFilterChange = (e: any) => {
     const { name, value, type, checked } = e.target;
-    setfilters((prev) => ({
+    setFilters((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
+
   const clearFilters = () => {
-    setfilters({
+    setFilters({
       category: "",
       location: "",
       workFromHome: false,
@@ -99,246 +77,330 @@ const index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Filter  */}
-          <div className="hidden md:block w-64 bg-white rounded-lg shadow-sm p-6 h-fit">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-2">
-                <Filter className="h-5 w-5 text-blue-600" />
-                <span className="font-medium text-black">{t("filters")}</span>
-              </div>
-              <button
-                onClick={clearFilters}
-                className="text-sm text-blue-600 hover:text-blue-700"
-              >
-                {t("clear_all")}
-              </button>
-            </div>
-            <div className="space-y-6">
-              {/* Profile/Category Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("category")}
-                </label>
-                <input
-                  type="text"
-                  name="category"
-                  value={filter.category}
-                  onChange={handlefilterchange}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-700"
-                  placeholder="e.g. Marketing Intern"
-                />
-              </div>
-              {/* Location Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("location")}
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={filter.location}
-                  onChange={handlefilterchange}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-700"
-                  placeholder="e.g. Mumbai"
-                />
+    <div className="min-h-screen bg-slate-50 font-sans pb-20">
+      
+      {/* Page Header */}
+      <div className="bg-white border-b border-slate-200 py-12 mb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
+            Discover Premium Internships
+          </h1>
+          <p className="text-lg text-slate-500 max-w-2xl">
+            Find the best internship opportunities to kickstart your career. Filter by category, location, and stipend to find your perfect match.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          
+          {/* Sidebar Filter */}
+          <div className="hidden lg:block w-72 flex-shrink-0">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-28">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center space-x-2 text-slate-800">
+                  <Filter className="h-5 w-5" />
+                  <span className="font-bold text-lg">{t("filters")}</span>
+                </div>
+                <button
+                  onClick={clearFilters}
+                  className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                >
+                  {t("clear_all")}
+                </button>
               </div>
 
-              {/* Checkboxes */}
-              <div className="space-y-3">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name="workFromHome"
-                    checked={filter.workFromHome}
-                    onChange={handlefilterchange}
-                    className="h-4 w-4 text-blue-600 rounded "
-                  />
-                  <span className="text-gray-700">{t("work_from_home")}</span>
-                </label>
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    name="partTime"
-                    checked={filter.partTime}
-                    onChange={handlefilterchange}
-                    className="h-4 w-4 text-blue-600 rounded"
-                  />
-                  <span className="text-gray-700">{t("part_time")}</span>
-                </label>
-              </div>
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    {t("category")}
+                  </label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      type="text"
+                      name="category"
+                      value={filter.category}
+                      onChange={handleFilterChange}
+                      className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all text-sm text-slate-700 placeholder-slate-400"
+                      placeholder="e.g. Marketing"
+                    />
+                  </div>
+                </div>
 
-              {/* Stipend Range */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t("monthly_stipend")}
-                </label>
-                <input
-                  type="range"
-                  name="stipend"
-                  min="0"
-                  max="100"
-                  value={filter.stipend}
-                  onChange={handlefilterchange}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-sm text-gray-600">
-                  <span>₹0</span>
-                  <span>₹50K</span>
-                  <span>₹100K</span>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    {t("location")}
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      type="text"
+                      name="location"
+                      value={filter.location}
+                      onChange={handleFilterChange}
+                      className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all text-sm text-slate-700 placeholder-slate-400"
+                      placeholder="e.g. Mumbai"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="flex items-center space-x-3 mb-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        name="workFromHome"
+                        checked={filter.workFromHome}
+                        onChange={handleFilterChange}
+                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 checked:border-blue-600 checked:bg-blue-600 transition-all"
+                      />
+                      <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                    <span className="text-slate-700 text-sm font-medium group-hover:text-slate-900 transition-colors">{t("work_from_home")}</span>
+                  </label>
+                  <label className="flex items-center space-x-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        name="partTime"
+                        checked={filter.partTime}
+                        onChange={handleFilterChange}
+                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-slate-300 checked:border-blue-600 checked:bg-blue-600 transition-all"
+                      />
+                      <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 5L4.5 8.5L13 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </div>
+                    <span className="text-slate-700 text-sm font-medium group-hover:text-slate-900 transition-colors">{t("part_time")}</span>
+                  </label>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="block text-sm font-semibold text-slate-700 mb-4">
+                    {t("monthly_stipend")}
+                  </label>
+                  <input
+                    type="range"
+                    name="stipend"
+                    min="0"
+                    max="100"
+                    value={filter.stipend}
+                    onChange={handleFilterChange}
+                    className="w-full accent-blue-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                  />
+                  <div className="flex justify-between text-xs font-medium text-slate-500 mt-2">
+                    <span>₹0</span>
+                    <span>₹50K</span>
+                    <span>₹100K+</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Main Content */}
           <div className="flex-1">
-            <div className="md:hidden mb-4">
+            <div className="lg:hidden mb-4">
               <button
-                onClick={() => setisFiltervisible(!isFiltervisible)}
-                className="w-full flex items-center justify-center space-x-2 bg-white p-3 rounded-lg shadow-sm text-black"
+                onClick={() => setIsFilterVisible(true)}
+                className="w-full flex items-center justify-center space-x-2 bg-white border border-slate-200 py-3 rounded-xl shadow-sm text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
               >
                 <Filter className="h-5 w-5" />
-                <span> Show Filters</span>
+                <span>Show Filters</span>
               </button>
             </div>
-            <div className="bg-white p-4 rounded-lg shadow-sm mb-4">
-              <p className="text-center font-medium text-black">
-                {filteredInternships.length} {t("internships_found")}
-              </p>
-            </div>
-            <div className="space-y-4">
-              {filteredInternships.map((internship: any) => (
-                <div
-                  key={internship._id}
-                  className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center space-x-2 text-blue-600 mb-4">
-                    <ArrowUpRight className="h-5 w-5" />
-                    <span className="font-medium">{t("actively_hiring")}</span>
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">
-                    {internship.title}
-                  </h2>
-                  <p className="text-gray-600 mb-4">{internship.company}</p>
 
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <PlayCircle className="h-5 w-5" />
-                      <div>
-                        <p className="text-sm font-medium">Start Date</p>
-                        <p className="text-sm">{internship.startDate}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <Pin className="h-5 w-5" />
-                      <div>
-                        <p className="text-sm font-medium">Location</p>
-                        <p className="text-sm">{internship.location}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <DollarSign className="h-5 w-5" />
-                      <div>
-                        <p className="text-sm font-medium">Stipend</p>
-                        <p className="text-sm">{internship.stipend}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
-                        Internship
-                      </span>
-                      <div className="flex items-center space-x-1 text-green-600">
-                        <Clock className="h-4 w-4" />
-                        <span className="text-sm">Posted recently</span>
-                      </div>
-                    </div>
-                    <Link
-                      href={`/detailiternship/${internship._id}`}
-                      className="text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      {t("view_details")}
-                    </Link>
-                  </div>
-                </div>
-              ))}
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-slate-800">
+                {filteredInternships.length} {t("internships_found")}
+              </h2>
             </div>
+
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((skeleton) => (
+                  <div key={skeleton} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm animate-pulse">
+                    <div className="flex justify-between mb-4">
+                      <div className="w-12 h-12 bg-slate-200 rounded-xl"></div>
+                      <div className="w-24 h-6 bg-slate-200 rounded-full"></div>
+                    </div>
+                    <div className="w-1/2 h-6 bg-slate-200 rounded mb-2"></div>
+                    <div className="w-1/3 h-4 bg-slate-200 rounded mb-6"></div>
+                    <div className="flex gap-4 mb-6">
+                      <div className="w-20 h-4 bg-slate-200 rounded"></div>
+                      <div className="w-20 h-4 bg-slate-200 rounded"></div>
+                    </div>
+                    <div className="flex justify-between">
+                      <div className="w-24 h-6 bg-slate-200 rounded-full"></div>
+                      <div className="w-24 h-10 bg-slate-200 rounded-xl"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredInternships.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search className="h-8 w-8 text-slate-400" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">No internships found</h3>
+                <p className="text-slate-500 mb-6 max-w-sm mx-auto">We couldn't find any internships matching your current filters. Try adjusting your search criteria.</p>
+                <button onClick={clearFilters} className="px-6 py-2 bg-blue-50 text-blue-700 font-semibold rounded-xl hover:bg-blue-100 transition-colors">
+                  Clear Filters
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredInternships.map((internship: any) => (
+                  <div
+                    key={internship._id}
+                    className="group bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all duration-300 relative overflow-hidden"
+                  >
+                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex gap-4">
+                        <div className="w-14 h-14 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl font-bold text-slate-400 shrink-0">
+                          {internship.company?.charAt(0) || <Building2 className="text-slate-400" />}
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1 line-clamp-1">
+                            {internship.title}
+                          </h2>
+                          <p className="text-slate-500 font-medium">{internship.company}</p>
+                        </div>
+                      </div>
+                      <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100 uppercase tracking-wide">
+                        <Zap size={12} className="fill-emerald-500" /> Hiring
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-2 mb-6 ml-0 sm:ml-18">
+                      <div className="flex items-start gap-2 text-slate-600">
+                        <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" />
+                        <div>
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Location</p>
+                          <p className="text-sm font-medium">{internship.location}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-slate-600">
+                        <DollarSign className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" />
+                        <div>
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Stipend</p>
+                          <p className="text-sm font-medium">{internship.stipend}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-slate-600">
+                        <Calendar className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" />
+                        <div>
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Duration</p>
+                          <p className="text-sm font-medium">{internship.duration}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-slate-600">
+                        <Clock className="h-4 w-4 mt-0.5 shrink-0 text-slate-400" />
+                        <div>
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Start Date</p>
+                          <p className="text-sm font-medium">{internship.startDate}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-100 ml-0 sm:ml-18">
+                      <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
+                        {internship.category || "Internship"}
+                      </span>
+                      
+                      <Link
+                        href={`/detailiternship/${internship._id}`}
+                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all shadow-sm flex items-center gap-2 group/btn"
+                      >
+                        {t("view_details")}
+                        <ArrowUpRight size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
+
       {/* Mobile Filters Modal */}
-      {isFiltervisible && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
-          <div className="bg-white h-full w-full max-w-sm ml-auto p-6 overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-bold">{t("filters")}</h2>
+      {isFilterVisible && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] lg:hidden animate-in fade-in duration-200">
+          <div className="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100">
+              <h2 className="text-xl font-bold text-slate-900">{t("filters")}</h2>
               <button
-                onClick={() => setisFiltervisible(false)}
-                className="text-gray-400 hover:text-gray-600"
+                onClick={() => setIsFilterVisible(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
-            <div className="space-y-6">
-              {/* Profile/Category Filter */}
+            
+            <div className="p-6 flex-1 overflow-y-auto space-y-6">
+              {/* Same filters as desktop */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
                   {t("category")}
                 </label>
-                <input
-                  type="text"
-                  name="category"
-                  value={filter.category}
-                  onChange={handlefilterchange}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-700"
-                  placeholder="e.g. Marketing Intern"
-                />
-              </div>
-              {/* Location Filter */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  name="location"
-                  value={filter.location}
-                  onChange={handlefilterchange}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-700"
-                  placeholder="e.g. Mumbai"
-                />
+                <div className="relative">
+                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    name="category"
+                    value={filter.category}
+                    onChange={handleFilterChange}
+                    className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-slate-700"
+                    placeholder="e.g. Marketing"
+                  />
+                </div>
               </div>
 
-              {/* Checkboxes */}
-              <div className="space-y-3">
-                <label className="flex items-center space-x-2">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  {t("location")}
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    name="location"
+                    value={filter.location}
+                    onChange={handleFilterChange}
+                    className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-slate-700"
+                    placeholder="e.g. Mumbai"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100">
+                <label className="flex items-center space-x-3 mb-4">
                   <input
                     type="checkbox"
                     name="workFromHome"
                     checked={filter.workFromHome}
-                    onChange={handlefilterchange}
-                    className="h-4 w-4 text-blue-600 rounded "
+                    onChange={handleFilterChange}
+                    className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-gray-700">{t("work_from_home")}</span>
+                  <span className="text-slate-700 font-medium">{t("work_from_home")}</span>
                 </label>
-                <label className="flex items-center space-x-2">
+                <label className="flex items-center space-x-3">
                   <input
                     type="checkbox"
                     name="partTime"
                     checked={filter.partTime}
-                    onChange={handlefilterchange}
-                    className="h-4 w-4 text-blue-600 rounded"
+                    onChange={handleFilterChange}
+                    className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="text-gray-700">{t("part_time")}</span>
+                  <span className="text-slate-700 font-medium">{t("part_time")}</span>
                 </label>
               </div>
 
-              {/* Stipend Range */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Monthly Stipend (₹)
+              <div className="pt-4 border-t border-slate-100">
+                <label className="block text-sm font-semibold text-slate-700 mb-4">
+                  {t("monthly_stipend")} (₹)
                 </label>
                 <input
                   type="range"
@@ -346,17 +408,25 @@ const index = () => {
                   min="0"
                   max="100"
                   value={filter.stipend}
-                  onChange={handlefilterchange}
-                  className="w-full"
+                  onChange={handleFilterChange}
+                  className="w-full accent-blue-600"
                 />
-                <div className="flex justify-between text-sm text-gray-600">
+                <div className="flex justify-between text-xs font-medium text-slate-500 mt-2">
                   <span>₹0</span>
                   <span>₹50K</span>
-                  <span>₹100K</span>
+                  <span>₹100K+</span>
                 </div>
               </div>
             </div>
-           
+            
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex gap-4">
+              <button onClick={clearFilters} className="flex-1 py-3 text-slate-700 font-semibold bg-white border border-slate-200 rounded-xl hover:bg-slate-50">
+                Clear
+              </button>
+              <button onClick={() => setIsFilterVisible(false)} className="flex-1 py-3 text-white font-semibold bg-blue-600 rounded-xl hover:bg-blue-700 shadow-sm">
+                Apply Filters
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -364,4 +434,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default Index;
