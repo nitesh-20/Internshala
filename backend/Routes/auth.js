@@ -99,31 +99,61 @@ router.post("/register", authLimiter, async (req, res) => {
         .json({ error: "Password must be at least 8 characters long." });
     }
 
-    const existingEmailUser = normalizedEmail
+    let existingEmailUser = normalizedEmail
       ? await User.findOne({ email: normalizedEmail })
       : null;
-    if (existingEmailUser) {
-      return res.status(409).json({ error: "Email is already registered." });
-    }
-
-    const existingPhoneUser = normalizedPhone
+    let existingPhoneUser = normalizedPhone
       ? await User.findOne({ phone: normalizedPhone })
       : null;
-    if (existingPhoneUser) {
+
+    if (
+      existingEmailUser &&
+      existingPhoneUser &&
+      String(existingEmailUser._id) !== String(existingPhoneUser._id)
+    ) {
+      return res.status(409).json({
+        error: "Email and phone belong to different accounts.",
+      });
+    }
+
+    const existingUser = existingEmailUser || existingPhoneUser;
+
+    if (existingUser && existingUser.passwordHash) {
+      if (existingEmailUser) {
+        return res.status(409).json({ error: "Email is already registered." });
+      }
       return res.status(409).json({ error: "Phone number is already registered." });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      name: trimmedName,
-      email: normalizedEmail || undefined,
-      phone: normalizedPhone || undefined,
-      passwordHash,
-      authProvider: "local",
-    });
+    let user;
+
+    if (existingUser) {
+      existingUser.name = trimmedName || existingUser.name;
+      if (normalizedEmail) {
+        existingUser.email = normalizedEmail;
+      }
+      if (normalizedPhone) {
+        existingUser.phone = normalizedPhone;
+      }
+      existingUser.passwordHash = passwordHash;
+      existingUser.authProvider = "local";
+      await existingUser.save();
+      user = existingUser;
+    } else {
+      user = await User.create({
+        name: trimmedName,
+        email: normalizedEmail || undefined,
+        phone: normalizedPhone || undefined,
+        passwordHash,
+        authProvider: "local",
+      });
+    }
 
     return res.status(201).json({
-      message: "Registration successful.",
+      message: existingUser
+        ? "Password login enabled for your existing account."
+        : "Registration successful.",
       token: issueToken(user),
       user: sanitizeUser(user),
     });
@@ -150,8 +180,15 @@ router.post("/login", authLimiter, async (req, res) => {
       : { phone: normalizedPhone };
 
     const user = await User.findOne(query);
-    if (!user || !user.passwordHash) {
+    if (!user) {
       return res.status(401).json({ error: "Invalid credentials." });
+    }
+
+    if (!user.passwordHash) {
+      return res.status(400).json({
+        error:
+          "This account currently uses Google sign-in only. Register a password first to enable email or phone login.",
+      });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
