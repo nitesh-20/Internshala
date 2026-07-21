@@ -41,10 +41,10 @@ const Navbar = () => {
     return () => clearInterval(interval);
   }, [showOtpModal]);
 
-  const requestOtp = async (email: string) => {
+  const requestOtp = async (email: string, languageCode: string) => {
     setIsLoading(true);
     try {
-      const res = await axios.post("http://localhost:5001/api/language/request-otp", { email });
+      const res = await axios.post("http://localhost:5001/api/language/request-otp", { email, languageCode });
       toast.success(res.data.message || "OTP sent successfully!");
       setResendTimer(60);
       setExpireTimer(300);
@@ -82,22 +82,21 @@ const Navbar = () => {
   };
 
   const handleLanguageChange = async (lang: string) => {
-    if (lang === "fr") {
-      if (!user) {
-        toast.error("Please login first to switch to French (requires email verification)");
-        return;
-      }
-      try {
-        toast.info("Requesting OTP...");
-        setPendingLang(lang);
-        setShowLangMenu(false);
-        await requestOtp(user.email);
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
-      i18n.changeLanguage(lang);
+    if (i18n.language === lang) {
       setShowLangMenu(false);
+      return;
+    }
+    if (!user) {
+      toast.error("Please login first to switch languages (requires email verification)");
+      return;
+    }
+    try {
+      toast.info("Requesting OTP...");
+      setPendingLang(lang);
+      setShowLangMenu(false);
+      await requestOtp(user.email, lang);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -105,7 +104,7 @@ const Navbar = () => {
     if (!otp) return;
     setIsLoading(true);
     try {
-      await axios.post("http://localhost:5001/api/language/verify-otp", { email: user?.email, otp });
+      await axios.post("http://localhost:5001/api/language/verify-otp", { email: user?.email, otp, languageCode: pendingLang });
       i18n.changeLanguage(pendingLang);
       setShowOtpModal(false);
       setOtp("");
@@ -169,10 +168,7 @@ const Navbar = () => {
                     <button onClick={() => handleLanguageChange('hi')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'hi' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇮🇳 हिंदी</button>
                     <button onClick={() => handleLanguageChange('pt')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'pt' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇧🇷 Português</button>
                     <button onClick={() => handleLanguageChange('zh')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'zh' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇨🇳 中文</button>
-                    <button onClick={() => handleLanguageChange('fr')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 flex items-center justify-between ${i18n.language === 'fr' ? 'bg-blue-50 text-blue-600 font-semibold' : 'font-semibold text-blue-600'}`}>
-                      <span>🇫🇷 Français</span>
-                      <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">Secure</span>
-                    </button>
+                    <button onClick={() => handleLanguageChange('fr')} className={`block w-full text-left px-4 py-2 text-sm hover:bg-blue-50 hover:text-blue-600 ${i18n.language === 'fr' ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'}`}>🇫🇷 Français</button>
                   </div>
                 )}
               </div>
@@ -224,14 +220,14 @@ const Navbar = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Security Verification</h2>
-            <p className="text-gray-600 mb-2">Enter the OTP sent to your email to unlock the French language setting.</p>
+            <p className="text-gray-600 mb-2">Enter the OTP sent to your email to unlock the {pendingLang.toUpperCase()} language setting.</p>
             
             <div className="flex justify-between text-sm text-gray-500 mb-4">
               <span>Expires in: <span className="font-mono font-semibold text-red-500">{Math.floor(expireTimer / 60)}:{(expireTimer % 60).toString().padStart(2, '0')}</span></span>
               {resendTimer > 0 ? (
                 <span>Resend in {resendTimer}s</span>
               ) : (
-                <button onClick={() => user && requestOtp(user.email)} disabled={isLoading} className="text-blue-600 hover:underline">Resend OTP</button>
+                <button onClick={() => user && requestOtp(user.email, pendingLang)} disabled={isLoading} className="text-blue-600 hover:underline">Resend OTP</button>
               )}
             </div>
 

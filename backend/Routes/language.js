@@ -23,16 +23,17 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Request OTP for French Language switch
+// Request OTP for Language switch
 router.post('/request-otp', otpRateLimiter, async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email, languageCode } = req.body;
         if (!email) return res.status(400).json({ error: "Email is required" });
+        if (!languageCode) return res.status(400).json({ error: "Language code is required" });
 
         // Check cooldown (60 seconds)
-        const recentOtp = await OTP.findOne({ email, purpose: 'FRENCH_LANGUAGE' }).sort({ createdAt: -1 });
-        if (recentOtp) {
-            const timeSinceLastOtp = (Date.now() - recentOtp.createdAt.getTime()) / 1000;
+        const recentOtp = await OTP.findOne({ email, purpose: 'LANGUAGE_CHANGE' }).sort({ createdAt: -1 });
+        if (recentOtp && recentOtp.createdAt) {
+            const timeSinceLastOtp = (Date.now() - new Date(recentOtp.createdAt).getTime()) / 1000;
             if (timeSinceLastOtp < 60) {
                 return res.status(429).json({ error: `Please wait ${Math.ceil(60 - timeSinceLastOtp)} seconds before requesting a new OTP.` });
             }
@@ -44,7 +45,7 @@ router.post('/request-otp', otpRateLimiter, async (req, res) => {
         await OTP.create({
             email,
             hashedOtp,
-            purpose: 'FRENCH_LANGUAGE'
+            purpose: 'LANGUAGE_CHANGE'
         });
 
         // Send email
@@ -52,13 +53,13 @@ router.post('/request-otp', otpRateLimiter, async (req, res) => {
             from: '"Internshala Security" <security@internshala.com>',
             to: email,
             subject: 'OTP for Language Change',
-            text: `Your OTP to switch language to French is ${otpCode}. It expires in 5 minutes.`
+            text: `Your OTP to switch language to ${languageCode.toUpperCase()} is ${otpCode}. It expires in 5 minutes.`
         });
 
         // For local development without real email, return the OTP in response (REMOVE IN PRODUCTION)
         res.json({ message: "OTP sent successfully to " + email, dev_otp: otpCode });
     } catch (error) {
-        console.error(error);
+        console.error("OTP Send Error:", error);
         res.status(500).json({ error: "Server error sending OTP" });
     }
 });
@@ -66,11 +67,11 @@ router.post('/request-otp', otpRateLimiter, async (req, res) => {
 // Verify OTP
 router.post('/verify-otp', async (req, res) => {
     try {
-        const { email, otp } = req.body;
-        if (!email || !otp) return res.status(400).json({ error: "Email and OTP are required" });
+        const { email, otp, languageCode } = req.body;
+        if (!email || !otp || !languageCode) return res.status(400).json({ error: "Email, OTP and languageCode are required" });
 
         // Get latest OTP for this email
-        const validOtp = await OTP.findOne({ email, purpose: 'FRENCH_LANGUAGE' }).sort({ createdAt: -1 });
+        const validOtp = await OTP.findOne({ email, purpose: 'LANGUAGE_CHANGE' }).sort({ createdAt: -1 });
         
         if (!validOtp) {
             return res.status(400).json({ error: "Invalid or expired OTP" });
@@ -91,9 +92,9 @@ router.post('/verify-otp', async (req, res) => {
         // Delete the OTP after successful verification
         await OTP.deleteOne({ _id: validOtp._id });
 
-        res.json({ message: "OTP verified successfully. Language changed to French." });
+        res.json({ message: `OTP verified successfully. Language changed to ${languageCode.toUpperCase()}.` });
     } catch (error) {
-        console.error(error);
+        console.error("OTP Verify Error:", error);
         res.status(500).json({ error: "Server error verifying OTP" });
     }
 });
