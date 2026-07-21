@@ -240,7 +240,7 @@ const Navbar = () => {
               onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
               placeholder="Enter 6-digit OTP"
               disabled={isLoading || expireTimer === 0}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-center text-xl tracking-widest disabled:bg-gray-100"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all mb-4 text-center text-xl tracking-widest text-gray-900 font-bold disabled:bg-gray-100"
             />
             <div className="flex space-x-3">
               <button 

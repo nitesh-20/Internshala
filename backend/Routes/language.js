@@ -13,13 +13,12 @@ const otpRateLimiter = rateLimit({
   message: { error: "Too many OTP requests from this IP, please try again after 5 minutes" }
 });
 
-// Mock Nodemailer transport (for dev purposes, ideally use real credentials from .env)
+// Real Nodemailer transport (uses Gmail credentials from .env)
 const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
+    service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER || 'ethereal.user@ethereal.email',
-        pass: process.env.EMAIL_PASS || 'ethereal_password'
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
