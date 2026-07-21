@@ -20,6 +20,15 @@ const index = () => {
   const dispatch = useDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [resumeData, setResumeData] = useState<any>(null);
+
+  useEffect(() => {
+    if (user?.email) {
+      axios.get(`http://localhost:5001/api/resume/${user.email}`)
+        .then(res => setResumeData(res.data))
+        .catch(err => console.log("No premium resume found or error fetching."));
+    }
+  }, [user]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
