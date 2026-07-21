@@ -1,5 +1,38 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
 
+## Authentication Features
+
+The app now supports two user authentication modes:
+
+- Firebase Google sign-in
+- Local MongoDB-backed email/password authentication
+
+Additional account flows:
+
+- Registration using email/password with optional phone number
+- Login using registered email or phone number
+- Forgot password using registered email or phone number
+- Password reset limited to once every 24 hours
+
+Required frontend environment variables:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5001
+NEXT_PUBLIC_RAZORPAY_KEY_ID=<your_razorpay_key_id>
+```
+
+The backend requires:
+
+```bash
+DATABASE_URL=<your_mongodb_connection_string>
+EMAIL_USER=<your_gmail_address>
+EMAIL_PASS=<your_gmail_app_password>
+JWT_SECRET=<your_jwt_secret>
+RAZORPAY_KEY_ID=<your_razorpay_key_id>
+RAZORPAY_KEY_SECRET=<your_razorpay_key_secret>
+SERVER_BASE_URL=http://localhost:5001
+```
+
 ## Getting Started
 
 First, run the development server:

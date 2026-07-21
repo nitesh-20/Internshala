@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { login, logout, selectuser } from "@/Feature/Userslice";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
+import { clearStoredAuth } from "@/lib/authStorage";
 
 interface User {
   name: string;
@@ -28,6 +29,7 @@ const Navbar = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [expireTimer, setExpireTimer] = useState(300);
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001";
 
   // Timers Effect
   React.useEffect(() => {
@@ -44,7 +46,7 @@ const Navbar = () => {
   const requestOtp = async (email: string, languageCode: string) => {
     setIsLoading(true);
     try {
-      const res = await axios.post("http://localhost:5001/api/language/request-otp", { email, languageCode });
+      const res = await axios.post(`${apiBaseUrl}/api/language/request-otp`, { email, languageCode });
       toast.success(res.data.message || "OTP sent successfully!");
       if (res.data.previewUrl) {
         console.log("=========================================");
@@ -73,14 +75,28 @@ const Navbar = () => {
 
     try {
       const res = await signInWithPopup(auth, provider);
-      dispatch(
-        login({
-          uid: res.user.uid,
-          photo: res.user.photoURL,
+      try {
+        await axios.post(`${apiBaseUrl}/api/auth/google-sync`, {
           name: res.user.displayName,
           email: res.user.email,
+          photo: res.user.photoURL,
           phoneNumber: res.user.phoneNumber,
-        })
+        });
+      } catch (syncError) {
+        console.error("Google user sync failed:", syncError);
+      }
+
+      const authUser = {
+        uid: res.user.uid,
+        photo: res.user.photoURL,
+        name: res.user.displayName,
+        email: res.user.email,
+        phoneNumber: res.user.phoneNumber,
+        authProvider: "google",
+      };
+      clearStoredAuth();
+      dispatch(
+        login(authUser)
       );
       toast.success("logged in successfully");
     } catch (error: any) {
@@ -91,11 +107,13 @@ const Navbar = () => {
 
   const handlelogout = () => {
     if (!auth) {
+      clearStoredAuth();
       dispatch(logout());
       return;
     }
 
     signOut(auth);
+    clearStoredAuth();
     dispatch(logout());
     toast.success("logged out");
   };
@@ -123,7 +141,7 @@ const Navbar = () => {
     if (!otp) return;
     setIsLoading(true);
     try {
-      await axios.post("http://localhost:5001/api/language/verify-otp", { email: user?.email, otp, languageCode: pendingLang });
+      await axios.post(`${apiBaseUrl}/api/language/verify-otp`, { email: user?.email, otp, languageCode: pendingLang });
       i18n.changeLanguage(pendingLang);
       setShowOtpModal(false);
       setOtp("");
@@ -217,6 +235,14 @@ const Navbar = () => {
                 </div>
               ) : (
                 <>
+                  <div className="hidden md:flex items-center gap-3">
+                    <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+                      Email Login
+                    </Link>
+                    <Link href="/register" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                      Register
+                    </Link>
+                  </div>
                   <button
                     onClick={handlelogin}
                     className="w-full bg-white border border-gray-300 shadow-sm rounded-lg px-4 py-2 flex items-center justify-center space-x-2 hover:bg-gray-50 transition-colors"
@@ -229,6 +255,9 @@ const Navbar = () => {
                     </svg>
                     <span className="text-gray-700 font-medium">{t("continue_with_google")}</span>
                   </button>
+                  <a href="/login" className="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors md:hidden">
+                    Login
+                  </a>
                   <a href="/adminlogin" className="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
                     {t("admin")}
                   </a>
