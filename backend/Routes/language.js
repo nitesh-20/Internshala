@@ -47,34 +47,28 @@ router.post('/request-otp', otpRateLimiter, async (req, res) => {
             purpose: 'LANGUAGE_CHANGE'
         });
 
-        // Generate test account dynamically so user doesn't need to configure .env
-        let testAccount = await nodemailer.createTestAccount();
-        let dynamicTransporter = nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false, // true for 465, false for other ports
+        // Create a real SMTP transporter using Gmail
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
             auth: {
-                user: testAccount.user, // generated ethereal user
-                pass: testAccount.pass, // generated ethereal password
-            },
+                user: process.env.EMAIL_USER, // Your real Gmail address
+                pass: process.env.EMAIL_PASS  // Your 16-digit App Password
+            }
         });
 
-        let previewUrl = "";
         try {
-            let info = await dynamicTransporter.sendMail({
-                from: '"Internshala Security" <security@internshala.com>',
-                to: email, // This sends to whatever user logs in
+            await transporter.sendMail({
+                from: `"Internshala OTP" <${process.env.EMAIL_USER}>`,
+                to: email, // This sends to the user's real email!
                 subject: 'OTP for Language Change',
                 text: `Your OTP to switch language to ${languageCode.toUpperCase()} is ${otpCode}. It expires in 5 minutes.`
             });
-            previewUrl = nodemailer.getTestMessageUrl(info);
-            console.log("Email sent! Preview URL: %s", previewUrl);
+            console.log("Real Email sent successfully to", email);
+            res.json({ message: "OTP sent successfully to " + email, dev_otp: otpCode });
         } catch (emailError) {
-            console.log("Email sending bypassed (mock credentials failed). OTP is:", otpCode);
+            console.error("Real Email failed to send. Check your .env credentials!", emailError);
+            res.status(500).json({ error: "Failed to send real email. Please configure EMAIL_USER and EMAIL_PASS in your .env file." });
         }
-
-        // Return the previewUrl so the frontend can display it
-        res.json({ message: "OTP sent successfully to " + email, dev_otp: otpCode, previewUrl });
     } catch (error) {
         console.error("OTP Send Error:", error);
         res.status(500).json({ error: "Server error sending OTP" });
