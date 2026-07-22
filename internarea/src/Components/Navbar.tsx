@@ -393,13 +393,13 @@ const Navbar = () => {
                 {t("jobs")}
               </Link>
               <Link href={"/resume"} className="px-4 py-2 text-sm font-semibold text-blue-700 bg-blue-50/50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-all flex items-center gap-1.5">
-                Resume Builder <span className="text-base">✨</span>
+                {t("navbar.resume_builder")} <span className="text-base">✨</span>
               </Link>
               <Link href={"/subscription"} className="px-4 py-2 text-sm font-semibold text-emerald-700 bg-emerald-50/50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all flex items-center gap-1.5 ml-2">
-                Premium <Crown size={16} className="text-emerald-500" />
+                {t("navbar.premium")} <Crown size={16} className="text-emerald-500" />
               </Link>
               <Link href={"/community"} className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all ml-2">
-                Community
+                {t("navbar.community")}
               </Link>
               
               {/* Search Bar */}
@@ -436,11 +436,11 @@ const Navbar = () => {
                   <div className="absolute left-0 mt-2 w-80 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.15)] border border-slate-100 z-[100] max-h-96 overflow-y-auto p-2">
                     {isSearching ? (
                       <div className="p-4 text-center text-sm text-slate-400 animate-pulse">
-                        Searching...
+                        {t("navbar.searching", { defaultValue: "Searching..." })}
                       </div>
                     ) : suggestions.length === 0 ? (
                       <div className="p-4 text-center text-sm text-slate-400">
-                        No matches found
+                        {t("navbar.no_matches_found", { defaultValue: "No matches found" })}
                       </div>
                     ) : (
                       <div className="py-1">
@@ -542,7 +542,7 @@ const Navbar = () => {
                             onClick={() => setShowProfileDropdown(false)}
                           >
                             <User size={16} />
-                            <span>My Profile</span>
+                            <span>{t("navbar.profile")}</span>
                           </Link>
                           <Link
                             href="/userapplication"
@@ -550,7 +550,7 @@ const Navbar = () => {
                             onClick={() => setShowProfileDropdown(false)}
                           >
                             <FileText size={16} />
-                            <span>My Applications</span>
+                            <span>{t("navbar.my_applications")}</span>
                           </Link>
                           <Link
                             href="/saved-internships"
@@ -558,7 +558,7 @@ const Navbar = () => {
                             onClick={() => setShowProfileDropdown(false)}
                           >
                             <Bookmark size={16} />
-                            <span>Saved Internships</span>
+                            <span>{t("navbar.saved_internships")}</span>
                           </Link>
                           <Link
                             href="/saved-jobs"
@@ -566,7 +566,7 @@ const Navbar = () => {
                             onClick={() => setShowProfileDropdown(false)}
                           >
                             <Bookmark size={16} />
-                            <span>Saved Jobs</span>
+                            <span>{t("navbar.saved_jobs")}</span>
                           </Link>
                           <Link
                             href="/resume"
@@ -574,7 +574,7 @@ const Navbar = () => {
                             onClick={() => setShowProfileDropdown(false)}
                           >
                             <FileText size={16} />
-                            <span>Resume</span>
+                            <span>{t("navbar.resume_builder")}</span>
                           </Link>
                           <Link
                             href="/subscription"
@@ -582,7 +582,7 @@ const Navbar = () => {
                             onClick={() => setShowProfileDropdown(false)}
                           >
                             <Crown size={16} className="text-amber-500" />
-                            <span>Subscription</span>
+                            <span>{t("navbar.subscription")}</span>
                           </Link>
                           <Link
                             href="/profile?tab=billing"
@@ -590,7 +590,7 @@ const Navbar = () => {
                             onClick={() => setShowProfileDropdown(false)}
                           >
                             <CreditCard size={16} />
-                            <span>Payment History</span>
+                            <span>{t("profile.payment_history", { defaultValue: "Payment History" })}</span>
                           </Link>
                         </div>
                         
@@ -618,7 +618,7 @@ const Navbar = () => {
                       className="flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-200 hover:bg-slate-50 transition-all"
                     >
                       <UserRound size={16} />
-                      <span>Log in</span>
+                      <span>{t("login.signin")}</span>
                       <ChevronDown size={14} className={`text-slate-400 transition-transform ${showPersonalMenu ? "rotate-180" : ""}`} />
                     </button>
 
@@ -629,14 +629,14 @@ const Navbar = () => {
                           className="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
                           onClick={() => setShowPersonalMenu(false)}
                         >
-                          Email / Phone Login
+                          {t("navbar.email_login")}
                         </Link>
                         <Link
                           href="/register"
                           className="block rounded-xl px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
                           onClick={() => setShowPersonalMenu(false)}
                         >
-                          Create Account
+                          {t("navbar.create_account")}
                         </Link>
                         <div className="my-1 h-px bg-slate-100"></div>
                         <button
@@ -691,11 +691,11 @@ const Navbar = () => {
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
           <div className="lg:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-200 shadow-xl py-4 px-4 flex flex-col gap-2 z-40 animate-in slide-in-from-top-4 duration-200">
-            <Link href={"/internship"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">Internships</Link>
-            <Link href={"/job"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">Jobs</Link>
-            <Link href={"/resume"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-semibold text-blue-700 bg-blue-50 rounded-xl">Resume Builder ✨</Link>
-            <Link href={"/subscription"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-semibold text-emerald-700 bg-emerald-50 rounded-xl">Premium Subscription 👑</Link>
-            <Link href={"/community"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">Community</Link>
+            <Link href={"/internship"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">{t("navbar.internships")}</Link>
+            <Link href={"/job"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">{t("navbar.jobs")}</Link>
+            <Link href={"/resume"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-semibold text-blue-700 bg-blue-50 rounded-xl">{t("navbar.resume_builder")} ✨</Link>
+            <Link href={"/subscription"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-semibold text-emerald-700 bg-emerald-50 rounded-xl">{t("navbar.premium")} 👑</Link>
+            <Link href={"/community"} onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">{t("navbar.community")}</Link>
             
             <div className="h-px bg-slate-100 my-2"></div>
             
@@ -712,15 +712,15 @@ const Navbar = () => {
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
-                  {isGoogleLoggingIn ? "Logging in..." : "Login with Google"}
+                  {isGoogleLoggingIn ? "Logging in..." : t("navbar.login_with_google")}
                 </button>
-                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">Email Login</Link>
-                <Link href="/adminlogin" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-rose-700 bg-rose-50 rounded-xl mt-2 text-center">Admin Access</Link>
+                <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-xl">{t("navbar.email_login")}</Link>
+                <Link href="/adminlogin" onClick={() => setIsMobileMenuOpen(false)} className="px-4 py-3 text-base font-medium text-rose-700 bg-rose-50 rounded-xl mt-2 text-center">{t("navbar.admin_access")}</Link>
               </>
             )}
             {user && (
               <button onClick={() => { setIsMobileMenuOpen(false); handlelogout(); }} className="px-4 py-3 text-base font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl text-center w-full mt-2">
-                Log Out
+                {t("navbar.logout")}
               </button>
             )}
           </div>
@@ -731,15 +731,15 @@ const Navbar = () => {
       {showOtpModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Security Verification</h2>
-            <p className="text-gray-600 mb-2">Enter the OTP sent to your email to unlock the {pendingLang.toUpperCase()} language setting.</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t("resume_builder.verification_title")}</h2>
+            <p className="text-gray-600 mb-2">{t("navbar.verify_lang_otp", { defaultValue: "Enter the OTP sent to your email to unlock the {{lang}} language setting.", lang: pendingLang.toUpperCase() })}</p>
             
             <div className="flex justify-between text-sm text-gray-500 mb-4">
-              <span>Expires in: <span className="font-mono font-semibold text-red-500">{Math.floor(expireTimer / 60)}:{(expireTimer % 60).toString().padStart(2, '0')}</span></span>
+              <span>{t("resume_builder.expires_in")} <span className="font-mono font-semibold text-red-500">{Math.floor(expireTimer / 60)}:{(expireTimer % 60).toString().padStart(2, '0')}</span></span>
               {resendTimer > 0 ? (
-                <span>Resend in {resendTimer}s</span>
+                <span>{t("login_otp_modal.resend_in", { seconds: resendTimer })}</span>
               ) : (
-                <button onClick={() => user && requestOtp(user.email, pendingLang)} disabled={isLoading} className="text-blue-600 hover:underline">Resend OTP</button>
+                <button onClick={() => user && requestOtp(user.email, pendingLang)} disabled={isLoading} className="text-blue-600 hover:underline">{t("login_otp_modal.resend_otp")}</button>
               )}
             </div>
 
@@ -760,14 +760,14 @@ const Navbar = () => {
                 disabled={isLoading}
                 className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
               >
-                Cancel
+                {t("resume_builder.cancel")}
               </button>
               <button 
                 onClick={verifyOtpAndSwitch}
                 disabled={isLoading || otp.length !== 6 || expireTimer === 0}
                 className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 disabled:opacity-50 flex justify-center items-center"
               >
-                {isLoading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span> : 'Verify & Switch'}
+                {isLoading ? <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span> : t("navbar.verify_switch", { defaultValue: "Verify & Switch" })}
               </button>
             </div>
           </div>
