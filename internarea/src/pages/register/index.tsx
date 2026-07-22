@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 const RegisterPage = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001";
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-tau-snowy-58.vercel.app";
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
