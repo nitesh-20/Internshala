@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import logo from "../Assets/logo.png";
 import Link from "next/link";
 import { auth, provider, firebaseInitError } from "../firebase/firebase";
-import { ChevronDown, Search, Globe, UserRound, Crown } from "lucide-react";
+import { ChevronDown, Search, Globe, UserRound, Crown, Bell, LogOut, Bookmark, FileText, CreditCard, User, Menu } from "lucide-react";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,6 +25,7 @@ const Navbar = () => {
   
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showPersonalMenu, setShowPersonalMenu] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState("");
   const [pendingLang, setPendingLang] = useState("");
@@ -318,21 +319,112 @@ const Navbar = () => {
               <div className="h-6 w-px bg-slate-200 mx-2"></div>
 
               {user ? (
-                <div className="flex items-center gap-4">
-                  <Link href={"/profile"} className="relative group">
-                    <div className="absolute inset-0 bg-blue-500 rounded-full blur opacity-40 group-hover:opacity-100 transition-opacity"></div>
-                    <img
-                      src={user.photo}
-                      alt={user.name}
-                      className="w-10 h-10 rounded-full border-2 border-white shadow-sm relative z-10 object-cover"
-                    />
-                  </Link>
-                  <button
-                    className="px-5 py-2 text-sm font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                    onClick={handlelogout}
-                  >
-                    {t("logout")}
+                <div className="flex items-center gap-4 relative">
+                  {/* Notification Bell */}
+                  <button className="p-2 text-slate-500 hover:text-blue-600 hover:bg-slate-50 rounded-xl transition-all relative">
+                    <Bell size={20} />
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-600 rounded-full border-2 border-white"></span>
                   </button>
+
+                  {/* Profile Dropdown Toggle */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                      className="flex items-center gap-2 focus:outline-none group"
+                    >
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-blue-500 rounded-full blur opacity-25 group-hover:opacity-60 transition-opacity"></div>
+                        <img
+                          src={user.photo}
+                          alt={user.name}
+                          className="w-10 h-10 rounded-full border-2 border-white shadow-sm relative z-10 object-cover"
+                        />
+                      </div>
+                      <ChevronDown size={14} className={`text-slate-400 group-hover:text-slate-600 transition-transform duration-200 ${showProfileDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {showProfileDropdown && (
+                      <div className="absolute right-0 mt-3 w-64 rounded-2xl bg-white p-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 z-50 origin-top-right transform transition-all duration-200">
+                        {/* User Header */}
+                        <div className="px-4 py-3 border-b border-slate-50">
+                          <p className="text-sm font-bold text-slate-900 truncate">{user.name}</p>
+                          <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                        </div>
+                        
+                        <div className="py-1">
+                          <Link
+                            href="/profile"
+                            className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                            onClick={() => setShowProfileDropdown(false)}
+                          >
+                            <User size={16} />
+                            <span>My Profile</span>
+                          </Link>
+                          <Link
+                            href="/userapplication"
+                            className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                            onClick={() => setShowProfileDropdown(false)}
+                          >
+                            <FileText size={16} />
+                            <span>My Applications</span>
+                          </Link>
+                          <Link
+                            href="/saved-internships"
+                            className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                            onClick={() => setShowProfileDropdown(false)}
+                          >
+                            <Bookmark size={16} />
+                            <span>Saved Internships</span>
+                          </Link>
+                          <Link
+                            href="/saved-jobs"
+                            className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                            onClick={() => setShowProfileDropdown(false)}
+                          >
+                            <Bookmark size={16} />
+                            <span>Saved Jobs</span>
+                          </Link>
+                          <Link
+                            href="/resume"
+                            className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                            onClick={() => setShowProfileDropdown(false)}
+                          >
+                            <FileText size={16} />
+                            <span>Resume</span>
+                          </Link>
+                          <Link
+                            href="/subscription"
+                            className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                            onClick={() => setShowProfileDropdown(false)}
+                          >
+                            <Crown size={16} className="text-amber-500" />
+                            <span>Subscription</span>
+                          </Link>
+                          <Link
+                            href="/profile?tab=billing"
+                            className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                            onClick={() => setShowProfileDropdown(false)}
+                          >
+                            <CreditCard size={16} />
+                            <span>Payment History</span>
+                          </Link>
+                        </div>
+                        
+                        <div className="my-1 border-t border-slate-50"></div>
+                        
+                        <button
+                          onClick={() => {
+                            setShowProfileDropdown(false);
+                            handlelogout();
+                          }}
+                          className="flex w-full items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors"
+                        >
+                          <LogOut size={16} />
+                          <span>Logout</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
