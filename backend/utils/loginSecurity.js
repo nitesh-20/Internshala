@@ -164,14 +164,20 @@ const sendLoginOtp = async ({ email, purpose }) => {
 
   const text = `Your login verification OTP is ${otpCode}. It expires in 5 minutes.`;
 
-  if (hasMailConfig()) {
-    await sendEmail({
-      to: normalizedEmailAddress,
-      subject: "OTP for Login Verification",
-      text,
-    });
-  } else {
-    console.log(`[LOGIN OTP SIMULATION] To ${normalizedEmailAddress}: ${text}`);
+  try {
+    if (hasMailConfig()) {
+      await sendEmail({
+        to: normalizedEmailAddress,
+        subject: "OTP for Login Verification",
+        text,
+      });
+    } else {
+      console.log(`[LOGIN OTP SIMULATION] To ${normalizedEmailAddress}: ${text}`);
+    }
+  } catch (mailError) {
+    console.error("Mailer Error:", mailError);
+    await OTP.deleteMany({ email: normalizedEmailAddress, purpose });
+    throw new Error("SMTP_ERROR");
   }
 
   return {
@@ -198,35 +204,49 @@ const createLoginChallenge = async ({
   }
 
   const purpose = `${LOGIN_OTP_PURPOSE_PREFIX}_${crypto.randomBytes(12).toString("hex")}`;
-  const otpSendResult = await sendLoginOtp({ email: user.email, purpose });
+  
+  try {
+    const otpSendResult = await sendLoginOtp({ email: user.email, purpose });
 
-  if (!otpSendResult.allowed) {
+    if (!otpSendResult.allowed) {
+      return {
+        ok: false,
+        status: 429,
+        body: {
+          error: `Please wait ${otpSendResult.retryAfterSeconds} seconds before requesting a new OTP.`,
+        },
+      };
+    }
+
     return {
-      ok: false,
-      status: 429,
+      ok: true,
+      status: 202,
       body: {
-        error: `Please wait ${otpSendResult.retryAfterSeconds} seconds before requesting a new OTP.`,
+        requiresOtp: true,
+        pendingToken: createLoginChallengeToken({
+          user,
+          email: user.email,
+          loginMethod,
+          activityContext,
+          purpose,
+        }),
+        message: "OTP sent to your registered email.",
+        expiresInSeconds: LOGIN_OTP_EXPIRY_SECONDS,
+        resendAfterSeconds: LOGIN_OTP_RESEND_SECONDS,
       },
     };
+  } catch (error) {
+    if (error.message === "SMTP_ERROR") {
+      return {
+        ok: false,
+        status: 503,
+        body: {
+          error: "Google Mail is temporarily rate-limiting OTP emails due to too many attempts. Please try again in 5-10 minutes.",
+        },
+      };
+    }
+    throw error;
   }
-
-  return {
-    ok: true,
-    status: 202,
-    body: {
-      requiresOtp: true,
-      pendingToken: createLoginChallengeToken({
-        user,
-        email: user.email,
-        loginMethod,
-        activityContext,
-        purpose,
-      }),
-      message: "OTP sent to your registered email.",
-      expiresInSeconds: LOGIN_OTP_EXPIRY_SECONDS,
-      resendAfterSeconds: LOGIN_OTP_RESEND_SECONDS,
-    },
-  };
 };
 
 const saveLoginActivity = async ({ userId = null, loginStatus, loginMethod, context }) => {
