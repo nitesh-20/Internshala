@@ -176,7 +176,7 @@ const Index = () => {
       const isHybrid = item.location?.toLowerCase().includes("hybrid");
       const isOnsite = !isRemote && !isHybrid;
       
-      const modes = [];
+      const modes: string[] = [];
       if (isRemote) modes.push("remote");
       if (isHybrid) modes.push("hybrid");
       if (isOnsite) modes.push("onsite");
