@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { 
-  Bookmark, MapPin, Briefcase, Calendar, ChevronRight, Share2, Trash2, ArrowRight, Sparkles 
+  Bookmark, MapPin, Briefcase, Calendar, ChevronRight, Share2, Trash2, ArrowRight, Sparkles, Search 
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
@@ -10,6 +10,7 @@ const SavedJobs = () => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-tau-snowy-58.vercel.app";
 
@@ -32,7 +33,13 @@ const SavedJobs = () => {
     fetchJobs();
   }, [apiBaseUrl]);
 
-  const savedJobs = jobs.filter(item => savedIds.includes(item._id));
+  const savedJobs = jobs.filter(item => 
+    savedIds.includes(item._id) &&
+    (item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     item.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     item.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     (item.skills && (Array.isArray(item.skills) ? item.skills.join(",") : item.skills).toLowerCase().includes(searchTerm.toLowerCase())))
+  );
 
   const handleUnsave = (id: string) => {
     const updated = savedIds.filter(item => item !== id);
@@ -53,7 +60,7 @@ const SavedJobs = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="mb-10 flex items-center justify-between">
+        <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
               <Bookmark className="text-indigo-600 fill-indigo-600/10" size={28} /> Saved Jobs
@@ -63,6 +70,23 @@ const SavedJobs = () => {
           <Link href="/job" className="text-sm font-bold text-indigo-600 hover:underline flex items-center gap-1">
             Browse Jobs <ArrowRight size={16} />
           </Link>
+        </div>
+
+        {/* Search Box */}
+        <div className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-slate-150 mb-8 flex items-center gap-3 max-w-md">
+          <Search className="text-slate-400" size={20} />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search saved jobs..."
+            className="w-full bg-transparent border-none outline-none text-sm text-slate-700 font-semibold"
+          />
+          {searchTerm && (
+            <button onClick={() => setSearchTerm("")} className="text-slate-400 hover:text-slate-650">
+              <X size={16} />
+            </button>
+          )}
         </div>
 
         {/* List Content */}
