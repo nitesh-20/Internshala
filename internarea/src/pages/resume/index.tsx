@@ -47,7 +47,7 @@ const ResumeBuilder = () => {
   const [pdfUrl, setPdfUrl] = useState('');
   const [isRazorpayReady, setIsRazorpayReady] = useState(false);
 
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5001';
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://backend-tau-snowy-58.vercel.app';
   const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
 
   const steps = [
@@ -76,6 +76,12 @@ const ResumeBuilder = () => {
     }
     return () => clearInterval(interval);
   }, [showOtpModal]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.Razorpay) {
+      setIsRazorpayReady(true);
+    }
+  }, []);
 
   const fetchDraft = async () => {
     try {
@@ -311,7 +317,7 @@ const ResumeBuilder = () => {
                <h2 className="text-3xl font-bold text-gray-900 mb-4">Your Resume is Ready!</h2>
                <p className="text-gray-600 mb-8 max-w-lg mx-auto">Your ATS-friendly premium resume has been successfully generated and securely attached to your profile for future applications.</p>
                <div className="flex justify-center space-x-4">
-                 <a href={pdfUrl} target="_blank" className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-colors">
+                 <a href={pdfUrl} download="resume.pdf" target="_blank" className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium transition-colors">
                    <Download size={20} /> <span>Download PDF</span>
                  </a>
                  <button onClick={() => { setIsPaid(false); setStep(1); }} className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-medium transition-colors">
@@ -463,12 +469,12 @@ const ResumeBuilder = () => {
                       
                       <button 
                         onClick={handleGenerateClick}
-                        disabled={isLoading || isCheckoutLoading || !isRazorpayReady}
+                        disabled={isLoading || isCheckoutLoading || !(isRazorpayReady || (typeof window !== 'undefined' && window.Razorpay))}
                         className="w-full max-w-sm flex justify-center items-center py-4 px-6 border border-transparent rounded-xl shadow-lg text-lg font-bold text-blue-900 bg-yellow-400 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 transition-all transform hover:scale-105"
                       >
                         {isCheckoutLoading ? 'Opening Razorpay...' : isLoading ? 'Processing...' : 'Pay ₹50 & Generate Resume'}
                       </button>
-                      {!isRazorpayReady && <p className="text-xs text-yellow-200 mt-3">Secure checkout is loading...</p>}
+                      {!(isRazorpayReady || (typeof window !== 'undefined' && window.Razorpay)) && <p className="text-xs text-yellow-200 mt-3">Secure checkout is loading...</p>}
                       <p className="text-xs text-gray-400 mt-4 flex items-center"><Shield size={12} className="mr-1"/> Secured by Razorpay & Internshala Auth</p>
                     </div>
 
