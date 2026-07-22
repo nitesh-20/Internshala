@@ -25,7 +25,7 @@ const SubscriptionPage = () => {
   const [isRazorpayReady, setIsRazorpayReady] = useState(false);
 
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://backend-tau-snowy-58.vercel.app';
-  const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+  const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TG92FmvyzHyuq1';
 
   useEffect(() => {
     if (user) {
