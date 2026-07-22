@@ -35,7 +35,7 @@ const Index = () => {
   useEffect(() => {
     const fetchdata = async () => {
       try {
-        const res = await axios.get("http://localhost:5001/api/job");
+        const res = await axios.get("https://backend-tau-snowy-58.vercel.app/api/job");
         setjob(res.data);
         setfilteredjobs(res.data);
       } catch (error) {

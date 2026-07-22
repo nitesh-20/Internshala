@@ -54,7 +54,7 @@ const index = () => {
   useEffect(() => {
     const fetchdata = async () => {
       try {
-        const res = await axios.get("http://localhost:5001/api/application");
+        const res = await axios.get("https://backend-tau-snowy-58.vercel.app/api/application");
         setdata(res.data);
       } catch (error) {
         console.log(error);
@@ -74,7 +74,7 @@ const index = () => {
   const handleacceptandreject = async (id: any, action: any) => {
     try {
       const res = await axios.put(
-        `http://localhost:5001/api/application/${id}`,
+        `https://backend-tau-snowy-58.vercel.app/api/application/${id}`,
         { action }
       );
       const updateappliacrtion = data.map((app: any) =>

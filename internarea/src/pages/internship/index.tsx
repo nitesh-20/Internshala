@@ -33,7 +33,7 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:5001/api/internship");
+        const res = await axios.get("https://backend-tau-snowy-58.vercel.app/api/internship");
         setInternshipData(res.data);
         setFilteredInternships(res.data);
       } catch (error) {

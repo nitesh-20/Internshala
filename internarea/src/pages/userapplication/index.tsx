@@ -52,7 +52,7 @@ const Index = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("http://localhost:5001/api/application");
+        const res = await axios.get("https://backend-tau-snowy-58.vercel.app/api/application");
         setData(res.data);
       } catch (error) {
         console.log(error);
