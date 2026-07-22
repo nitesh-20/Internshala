@@ -7,6 +7,7 @@ import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import {
   Heart,
   MessageCircle,
@@ -64,6 +65,7 @@ type AuthHeaders = {
 };
 
 const CommunityPage = () => {
+  const { t } = useTranslation();
   const user = useSelector(selectuser) as any;
   const dispatch = useDispatch();
   const apiBaseUrl = getApiBaseUrl();
@@ -168,7 +170,7 @@ const CommunityPage = () => {
       setHasMore(Boolean(feedRes.data.pagination?.hasMore));
       setPage(pageNumber);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to load community.");
+      toast.error(error.response?.data?.error || t("community.failed_load", { defaultValue: "Failed to load community." }));
     } finally {
       setIsLoading(false);
     }
@@ -217,7 +219,7 @@ const CommunityPage = () => {
 
   const handleCreateOrEditPost = async () => {
     if (!caption.trim() && selectedFiles.length === 0) {
-      toast.error("Add a caption or media before posting.");
+      toast.error(t("community.post_validation", { defaultValue: "Add a caption or media before posting." }));
       return;
     }
 
@@ -232,10 +234,10 @@ const CommunityPage = () => {
 
       if (editingPostId) {
         await axios.put(`${apiBaseUrl}/api/community/posts/${editingPostId}`, payload, { headers: authHeaders });
-        toast.success("Post updated successfully.");
+        toast.success(t("community.post_updated", { defaultValue: "Post updated successfully." }));
       } else {
         await axios.post(`${apiBaseUrl}/api/community/posts`, payload, { headers: authHeaders });
-        toast.success("Post created successfully.");
+        toast.success(t("community.posted_success", { defaultValue: "Post created successfully." }));
       }
 
       setCaption("");
@@ -319,7 +321,7 @@ const CommunityPage = () => {
         await navigator.share({ title: "InternArea Community", text: post.caption, url: postUrl });
       } else {
         await navigator.clipboard.writeText(postUrl);
-        toast.success("Post link copied.");
+        toast.success(t("community.link_copied", { defaultValue: "Post link copied." }));
       }
       await axios.post(`${apiBaseUrl}/api/community/posts/${post.id}/share`, {}, { headers: authHeaders });
       await loadCommunityState(page, false);
@@ -331,50 +333,50 @@ const CommunityPage = () => {
   const sendFriendRequest = async (receiverId: string) => {
     try {
       await axios.post(`${apiBaseUrl}/api/community/friends/request`, { receiverId }, { headers: authHeaders });
-      toast.success("Friend request sent.");
+      toast.success(t("community.request_sent", { defaultValue: "Friend request sent." }));
       await loadCommunityState(page, false);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to send request.");
+      toast.error(error.response?.data?.error || t("community.request_send_failed", { defaultValue: "Failed to send request." }));
     }
   };
 
   const acceptRequest = async (requestId: string) => {
     try {
       await axios.post(`${apiBaseUrl}/api/community/friends/request/${requestId}/accept`, {}, { headers: authHeaders });
-      toast.success("Friend request accepted.");
+      toast.success(t("community.request_accepted", { defaultValue: "Friend request accepted." }));
       await loadCommunityState(page, false);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to accept request.");
+      toast.error(error.response?.data?.error || t("community.request_accept_failed", { defaultValue: "Failed to accept request." }));
     }
   };
 
   const rejectRequest = async (requestId: string) => {
     try {
       await axios.post(`${apiBaseUrl}/api/community/friends/request/${requestId}/reject`, {}, { headers: authHeaders });
-      toast.success("Friend request rejected.");
+      toast.success(t("community.request_rejected", { defaultValue: "Friend request rejected." }));
       await loadCommunityState(page, false);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to reject request.");
+      toast.error(error.response?.data?.error || t("community.request_reject_failed", { defaultValue: "Failed to reject request." }));
     }
   };
 
   const removeFriend = async (friendId: string) => {
     try {
       await axios.delete(`${apiBaseUrl}/api/community/friends/${friendId}`, { headers: authHeaders });
-      toast.success("Friend removed.");
+      toast.success(t("community.friend_removed", { defaultValue: "Friend removed." }));
       await loadCommunityState(page, false);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to remove friend.");
+      toast.error(error.response?.data?.error || t("community.friend_remove_failed", { defaultValue: "Failed to remove friend." }));
     }
   };
 
   const deletePost = async (postId: string) => {
     try {
       await axios.delete(`${apiBaseUrl}/api/community/posts/${postId}`, { headers: authHeaders });
-      toast.success("Post deleted.");
+      toast.success(t("community.post_deleted", { defaultValue: "Post deleted." }));
       await loadCommunityState(page, false);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to delete post.");
+      toast.error(error.response?.data?.error || t("community.post_delete_failed", { defaultValue: "Failed to delete post." }));
     }
   };
 
@@ -407,10 +409,10 @@ const CommunityPage = () => {
           <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <Users className="h-10 w-10" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-3">Community Access</h1>
-          <p className="text-slate-500 mb-8">Join the conversation. Sign in to connect with other professionals and share your journey.</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-3">{t("community.access_title", { defaultValue: "Community Access" })}</h1>
+          <p className="text-slate-500 mb-8">{t("community.access_desc", { defaultValue: "Join the conversation. Sign in to connect with other professionals and share your journey." })}</p>
           <Link href="/login" className="inline-block w-full py-3 px-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors">
-            Sign In to Continue
+            {t("community.signin_btn", { defaultValue: "Sign In to Continue" })}
           </Link>
         </div>
       </div>
@@ -434,7 +436,7 @@ const CommunityPage = () => {
               )}
             </div>
             <h2 className="text-lg font-bold text-slate-900 mb-1">{user?.name}</h2>
-            <p className="text-sm font-medium text-slate-500 mb-6">{friendCount} connections</p>
+            <p className="text-sm font-medium text-slate-500 mb-6">{friendCount} {t("community.connections", { defaultValue: "connections" })}</p>
             
             <button
               onClick={() => {
@@ -446,24 +448,24 @@ const CommunityPage = () => {
               }}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors shadow-sm"
             >
-              Write a Post
+              {t("community.write_post_btn", { defaultValue: "Write a Post" })}
             </button>
             {friendCount === 0 && (
               <p className="mt-3 text-xs text-amber-600 bg-amber-50 p-2 rounded-lg border border-amber-100">
-                You need at least 1 connection to start posting.
+                {t("community.min_connection_msg", { defaultValue: "You need at least 1 connection to start posting." })}
               </p>
             )}
           </div>
 
           <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-900">Connections</h3>
+              <h3 className="font-bold text-slate-900">{t("community.connections_title", { defaultValue: "Connections" })}</h3>
               <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-full">{friendCount}</span>
             </div>
             
             <div className="space-y-3 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
               {friends.length === 0 ? (
-                <p className="text-sm text-slate-500 italic">No connections yet.</p>
+                <p className="text-sm text-slate-500 italic">{t("community.no_connections", { defaultValue: "No connections yet." })}</p>
               ) : (
                 friends.map((friend) => (
                   <div key={friend.id} className="flex items-center justify-between gap-3 group">
@@ -506,7 +508,7 @@ const CommunityPage = () => {
                 onClick={() => setShowComposer(true)}
                 className="flex-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left px-4 py-3 rounded-full text-slate-500 transition-colors"
               >
-                Share an update...
+                {t("community.ask_question_placeholder")}
               </button>
           </div>
 
@@ -514,7 +516,7 @@ const CommunityPage = () => {
           {showComposer && (
             <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-blue-100 animate-in fade-in slide-in-from-top-4 duration-300">
               <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
-                <h3 className="text-lg font-bold text-slate-900">{editingPostId ? "Edit Post" : "Create Post"}</h3>
+                <h3 className="text-lg font-bold text-slate-900">{editingPostId ? t("community.edit_post", { defaultValue: "Edit Post" }) : t("community.create_post", { defaultValue: "Create Post" })}</h3>
                 <button onClick={() => setShowComposer(false)} className="text-slate-400 hover:text-slate-600 bg-slate-50 p-2 rounded-full">
                   <X size={20} />
                 </button>
@@ -533,7 +535,7 @@ const CommunityPage = () => {
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
                     rows={3}
-                    placeholder="What do you want to talk about?"
+                    placeholder={t("community.composer_placeholder", { defaultValue: "What do you want to talk about?" })}
                     className="w-full bg-transparent resize-none outline-none text-slate-800 placeholder-slate-400 text-lg"
                     autoFocus
                   />
@@ -558,7 +560,7 @@ const CommunityPage = () => {
                   onClick={() => fileRef.current?.click()}
                   className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors flex items-center gap-2 px-4"
                 >
-                  <ImageIcon size={20} /> <span className="text-sm font-semibold">Media</span>
+                  <ImageIcon size={20} /> <span className="text-sm font-semibold">{t("community.media_btn", { defaultValue: "Media" })}</span>
                 </button>
                 <input ref={fileRef} type="file" multiple accept="image/*,video/*" className="hidden" onChange={handleFileChange} />
                 
@@ -567,7 +569,7 @@ const CommunityPage = () => {
                   disabled={isPosting || (!caption.trim() && previews.length === 0)}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-full disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors flex items-center gap-2 shadow-sm"
                 >
-                  {isPosting ? "Posting..." : "Post"} <Send size={16} />
+                  {isPosting ? t("community.posting_progress", { defaultValue: "Posting..." }) : t("community.post_btn_text", { defaultValue: "Post" })} <Send size={16} />
                 </button>
               </div>
             </div>
@@ -596,8 +598,8 @@ const CommunityPage = () => {
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="h-10 w-10 text-slate-300" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Your feed is quiet</h3>
-              <p className="text-slate-500 mb-6 max-w-sm mx-auto">Connect with others or create a post to get the conversation started.</p>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">{t("community.quiet_feed", { defaultValue: "Your feed is quiet" })}</h3>
+              <p className="text-slate-500 mb-6 max-w-sm mx-auto">{t("community.quiet_feed_desc", { defaultValue: "Connect with others or create a post to get the conversation started." })}</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -661,8 +663,8 @@ const CommunityPage = () => {
                         {post.likes}
                       </div>
                       <div className="flex gap-4">
-                        <span>{post.comments} comments</span>
-                        <span>{post.shares} shares</span>
+                        <span>{post.comments} {t("community.comments_count", { defaultValue: "comments" })}</span>
+                        <span>{post.shares} {t("community.shares_count", { defaultValue: "shares" })}</span>
                       </div>
                     </div>
 
@@ -671,19 +673,19 @@ const CommunityPage = () => {
                         onClick={() => toggleLike(post)} 
                         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl font-semibold transition-colors ${post.likedByCurrentUser ? "text-blue-600 bg-blue-50" : "text-slate-600 hover:bg-slate-50"}`}
                       >
-                        <Heart size={20} className={post.likedByCurrentUser ? "fill-blue-600" : ""} /> Like
+                        <Heart size={20} className={post.likedByCurrentUser ? "fill-blue-600" : ""} /> {t("community.like_action", { defaultValue: "Like" })}
                       </button>
                       <button 
                         onClick={() => toggleComments(post.id)} 
                         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl font-semibold transition-colors ${activeCommentPost === post.id ? "text-blue-600 bg-blue-50" : "text-slate-600 hover:bg-slate-50"}`}
                       >
-                        <MessageCircle size={20} /> Comment
+                        <MessageCircle size={20} /> {t("community.comment_action", { defaultValue: "Comment" })}
                       </button>
                       <button 
                         onClick={() => sharePost(post)} 
                         className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
                       >
-                        <Share2 size={20} /> Share
+                        <Share2 size={20} /> {t("community.share_action", { defaultValue: "Share" })}
                       </button>
                     </div>
 
@@ -702,7 +704,7 @@ const CommunityPage = () => {
                             <input
                               value={commentDrafts[post.id] || ""}
                               onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [post.id]: e.target.value }))}
-                              placeholder="Add a comment..."
+                              placeholder={t("community.write_comment")}
                               className="w-full bg-slate-50 border border-slate-200 rounded-full pl-4 pr-12 py-2.5 outline-none focus:border-blue-400 focus:bg-white text-sm"
                               onKeyDown={(e) => e.key === 'Enter' && addComment(post.id)}
                             />
@@ -757,9 +759,9 @@ const CommunityPage = () => {
               {hasMore && !isLoading && (
                 <button
                   onClick={() => loadCommunityState(page + 1, true)}
-                  className="w-full py-4 bg-white border border-slate-200 rounded-3xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+                  className="w-full py-4 bg-white border border-slate-200 rounded-3xl text-sm font-bold text-slate-600 hover:bg-bg-50 transition-colors shadow-sm"
                 >
-                  Load More
+                  {t("community.load_more", { defaultValue: "Load More" })}
                 </button>
               )}
             </div>
@@ -771,7 +773,7 @@ const CommunityPage = () => {
           {incomingRequests.length > 0 && (
             <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-blue-100">
               <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Users size={18} className="text-blue-600" /> Pending Requests
+                <Users size={18} className="text-blue-600" /> {t("community.pending_requests", { defaultValue: "Pending Requests" })}
               </h3>
               <div className="space-y-4">
                 {incomingRequests.map((req) => (
@@ -780,10 +782,10 @@ const CommunityPage = () => {
                     <p className="text-xs text-slate-500 mb-3">{new Date(req.createdAt).toLocaleDateString()}</p>
                     <div className="flex gap-2">
                       <button onClick={() => acceptRequest(req.id)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-xl transition-colors">
-                        Accept
+                        {t("community.accept_req", { defaultValue: "Accept" })}
                       </button>
                       <button onClick={() => rejectRequest(req.id)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-2 rounded-xl transition-colors">
-                        Decline
+                        {t("community.decline_req", { defaultValue: "Decline" })}
                       </button>
                     </div>
                   </div>
@@ -793,20 +795,20 @@ const CommunityPage = () => {
           )}
 
           <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
-            <h3 className="font-bold text-slate-900 mb-4">Discover People</h3>
+            <h3 className="font-bold text-slate-900 mb-4">{t("community.discover_people", { defaultValue: "Discover People" })}</h3>
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search community..."
+                placeholder={t("community.search_community_placeholder", { defaultValue: "Search community..." })}
                 className="w-full bg-slate-50 border border-slate-200 pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none focus:border-blue-500 focus:bg-white transition-colors"
               />
             </div>
             
             <div className="space-y-4">
               {discoverUsers.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-4">No users found.</p>
+                <p className="text-sm text-slate-500 text-center py-4">{t("community.no_users_found", { defaultValue: "No users found." })}</p>
               ) : (
                 discoverUsers.map((person) => (
                   <div key={person.id} className="flex items-center justify-between gap-2">
@@ -827,9 +829,9 @@ const CommunityPage = () => {
                     {person.relationship === "friend" ? (
                        <button disabled className="p-2 rounded-full bg-slate-50 text-slate-400 border border-slate-100"><UserCheck size={16} /></button>
                     ) : person.relationship === "incoming" ? (
-                       <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">Review</span>
+                       <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{t("community.relationship_review", { defaultValue: "Review" })}</span>
                     ) : person.relationship === "outgoing" ? (
-                       <span className="text-xs font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg">Sent</span>
+                       <span className="text-xs font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg">{t("community.relationship_sent", { defaultValue: "Sent" })}</span>
                     ) : (
                       <button onClick={() => sendFriendRequest(person.id)} className="p-2 rounded-full bg-white text-blue-600 border border-blue-200 hover:bg-blue-50 transition-colors">
                         <UserPlus size={16} />
