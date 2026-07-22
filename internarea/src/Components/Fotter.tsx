@@ -9,7 +9,6 @@ export default function Footer() {
           
           <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-6 group">
-              <img src="/logo.png" alt="InternArea" className="h-8 w-auto grayscale brightness-200 opacity-90 group-hover:opacity-100 transition-opacity" />
               <span className="text-xl font-extrabold tracking-tight text-white">
                 Intern<span className="text-blue-500">Area</span>
               </span>
