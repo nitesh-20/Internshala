@@ -77,11 +77,16 @@ const Index = () => {
       return;
     }
     try {
+      // Stripping id/uid keys to bypass backend subscription check since jobs are free
+      const { id: userId, _id: userOid, uid: userUid, ...safeUser } = user || {};
       const applicationData = {
         category: jobData.category,
         company: jobData.company,
         coverLetter: coverLetter,
-        user: user,
+        user: {
+          ...safeUser,
+          jobUserUid: userUid || userId || userOid
+        },
         Application: id,
         availability,
         resumeUrl: userResume && userResume.isPaid ? userResume.pdfUrl : null
