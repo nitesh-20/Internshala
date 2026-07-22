@@ -3,7 +3,7 @@ const Post = require("../Model/Post");
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const getDailyPostLimit = (friendCount) => {
-  if (friendCount <= 0) return 1; // Allow at least 1 post for new users
+  if (friendCount <= 0) return 0;
   if (friendCount > 10) return Infinity;
   if (friendCount === 1) return 1;
   if (friendCount === 2) return 2;
