@@ -13,7 +13,7 @@ const index = () => {
       try {
         setloading(true);
         const res = await axios.get(
-          `http://localhost:5001/api/application/${id}`
+          `https://backend-tau-snowy-58.vercel.app/api/application/${id}`
         );
         console.log(res.data);
         setdata(res.data);
