@@ -17,25 +17,19 @@ app.get("/", (req, res) => {
   res.send("hello this is internshala backend");
 });
 const multer = require("multer");
-const path = require("path");
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
-const upload = multer({ storage: storage });
 
 app.post("/api/upload", upload.single("file"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
-  const fileUrl = `http://localhost:5001/uploads/${req.file.filename}`;
+  const base64Data = req.file.buffer.toString("base64");
+  const fileUrl = `data:${req.file.mimetype};base64,${base64Data}`;
   res.json({ url: fileUrl });
 });
 
@@ -47,6 +41,9 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   next();
 });
-app.listen(port, () => {
-  console.log(`Server is running on the port ${port}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`Server is running on the port ${port}`);
+  });
+}
+module.exports = app;
