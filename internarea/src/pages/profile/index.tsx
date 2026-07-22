@@ -11,6 +11,7 @@ import { updateProfile } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import { useTranslation } from "react-i18next";
 import { getApiBaseUrl, getAuthHeaders } from "@/lib/api";
+import { setStoredAuth } from "@/lib/authStorage";
 import { useRouter } from "next/router";
 
 type LoginActivityItem = {
@@ -169,10 +170,20 @@ const Index = () => {
       const newPhotoUrl = res.data.url;
 
       if (auth?.currentUser) {
-        await updateProfile(auth.currentUser, { photoURL: newPhotoUrl });
+        try {
+          if (newPhotoUrl.length <= 2048) {
+            await updateProfile(auth.currentUser, { photoURL: newPhotoUrl });
+          } else {
+            console.warn("Base64 photo URL is too long for Firebase profile (limit 2048 chars). Saving locally instead.");
+          }
+        } catch (fbError) {
+          console.warn("Failed to update Firebase profile photoURL, using local storage fallback", fbError);
+        }
       }
 
-      dispatch(login({ ...user, photo: newPhotoUrl }));
+      const updatedUser = { ...user, photo: newPhotoUrl };
+      setStoredAuth(updatedUser);
+      dispatch(login(updatedUser));
     } catch (error) {
       console.error("Error uploading photo:", error);
       alert("Failed to upload profile photo");
