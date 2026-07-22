@@ -142,6 +142,9 @@ router.post("/posts", requireAuth, writeLimiter, async (req, res) => {
     }
 
     const user = await User.findById(req.authUser._id);
+    if (!user) {
+      return res.status(404).json({ error: "User profile not found. Please log in again to sync your account." });
+    }
     const limitCheck = await validatePostingLimit(user._id, user.friendCount || 0);
     if (!limitCheck.allowed) {
       return res.status(403).json({ error: limitCheck.message });
