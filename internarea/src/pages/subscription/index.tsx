@@ -7,6 +7,7 @@ import Script from 'next/script';
 import { CheckCircle2, Crown, Zap, Shield, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { getAuthHeaders } from '@/lib/api';
+import { useTranslation } from 'react-i18next';
 
 declare global {
   interface Window {
@@ -15,6 +16,7 @@ declare global {
 }
 
 const SubscriptionPage = () => {
+  const { t } = useTranslation();
   const user = useSelector(selectuser);
   const router = useRouter();
   
@@ -46,7 +48,7 @@ const SubscriptionPage = () => {
       setCurrentSub(currentRes.data);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load subscription details.");
+      toast.error(t("subscription.failed_load", { defaultValue: "Failed to load subscription details." }));
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +56,7 @@ const SubscriptionPage = () => {
 
   const handleUpgradeClick = async (planName: string) => {
     if (!user) {
-      toast.info("Please login to subscribe");
+      toast.info(t("subscription.please_login", { defaultValue: "Please login to subscribe" }));
       return router.push("/");
     }
 
@@ -64,7 +66,7 @@ const SubscriptionPage = () => {
       if (typeof window !== "undefined" && window.Razorpay) {
         setIsRazorpayReady(true);
       } else {
-        toast.error("Payment gateway is loading. Please try again.");
+        toast.error(t("subscription.gateway_loading", { defaultValue: "Payment gateway is loading. Please try again." }));
         return;
       }
     }
@@ -84,7 +86,7 @@ const SubscriptionPage = () => {
         description: `${planName} Plan`,
         order_id: order.id,
         handler: async function (response: any) {
-          toast.info("Verifying payment...");
+          toast.info(t("subscription.verifying_payment", { defaultValue: "Verifying payment..." }));
           try {
             const verifyRes = await axios.post(`${apiBaseUrl}/api/subscription/verify-payment`, {
               razorpay_order_id: response.razorpay_order_id,
@@ -93,10 +95,10 @@ const SubscriptionPage = () => {
               plan: planName
             }, { headers: getAuthHeaders() });
             
-            toast.success("Subscription upgraded successfully! Invoice sent to your email.");
+            toast.success(t("subscription.payment_verified"));
             setCurrentSub(verifyRes.data.subscription);
           } catch (err: any) {
-            toast.error(err.response?.data?.error || "Failed to verify payment");
+            toast.error(err.response?.data?.error || t("subscription.payment_failed"));
           } finally {
             setIsCheckoutLoading(false);
           }
@@ -108,7 +110,7 @@ const SubscriptionPage = () => {
         modal: {
           ondismiss: function () {
             setIsCheckoutLoading(false);
-            toast.info("Payment cancelled.");
+            toast.info(t("subscription.payment_cancelled", { defaultValue: "Payment cancelled." }));
           }
         },
         theme: { color: "#2563EB" }
@@ -117,11 +119,11 @@ const SubscriptionPage = () => {
       const rzp = new window.Razorpay(options);
       rzp.on('payment.failed', function (response: any) {
         setIsCheckoutLoading(false);
-        toast.error(response.error?.description || "Payment failed.");
+        toast.error(response.error?.description || t("subscription.payment_failed_toast", { defaultValue: "Payment failed." }));
       });
       rzp.open();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to initiate payment");
+      toast.error(error.response?.data?.error || t("subscription.payment_failed"));
       setIsCheckoutLoading(false);
     }
   };
@@ -154,10 +156,10 @@ const SubscriptionPage = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl">
-            Choose Your Subscription Plan
+            {t("subscription.title")}
           </h1>
           <p className="mt-4 text-xl text-gray-600">
-            Unlock more internship opportunities. Upgrade your plan today.
+            {t("subscription.subtitle")}
           </p>
         </div>
 
@@ -168,7 +170,7 @@ const SubscriptionPage = () => {
               <div key={name} className={`relative bg-white rounded-2xl shadow-xl overflow-hidden border-2 ${isCurrent ? 'border-blue-600 scale-105' : 'border-transparent hover:border-gray-200'} transition-all duration-300 flex flex-col`}>
                 {isCurrent && (
                   <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
-                    CURRENT PLAN
+                    {t("subscription.current_plan")}
                   </div>
                 )}
                 
@@ -177,17 +179,19 @@ const SubscriptionPage = () => {
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{name}</h3>
                   <div className="flex items-baseline mb-6">
                     <span className="text-4xl font-extrabold text-gray-900">₹{details.price}</span>
-                    <span className="text-gray-500 ml-2">/ month</span>
+                    <span className="text-gray-500 ml-2">{t("subscription.per_month", { defaultValue: "/ month" })}</span>
                   </div>
                   
                   <ul className="space-y-4 mb-8">
                     <li className="flex items-center text-gray-600">
                       <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 shrink-0" />
-                      <span>{details.limit === -1 ? 'Unlimited' : details.limit} Internship Applications per month</span>
+                      <span>
+                        {details.limit === -1 ? t("subscription.unlimited") : details.limit} {t("subscription.apps_per_month", { defaultValue: "Internship Applications per month" })}
+                      </span>
                     </li>
                     <li className="flex items-center text-gray-600">
                       <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 shrink-0" />
-                      <span>Valid for 30 Days</span>
+                      <span>{t("subscription.validity", { defaultValue: "Valid for 30 Days" })}</span>
                     </li>
                   </ul>
                 </div>
@@ -204,7 +208,7 @@ const SubscriptionPage = () => {
                           : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
                     }`}
                   >
-                    {isCheckoutLoading ? 'Processing...' : isCurrent ? 'Active' : name === 'Free' ? 'Free Default' : 'Upgrade Now'}
+                    {isCheckoutLoading ? t("resume_builder.processing") : isCurrent ? t("subscription.active") : name === 'Free' ? t("subscription.free_default", { defaultValue: "Free Default" }) : t("subscription.upgrade_now")}
                   </button>
                 </div>
               </div>
