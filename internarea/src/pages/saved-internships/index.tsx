@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { 
-  Bookmark, MapPin, Briefcase, Calendar, ChevronRight, Share2, Trash2, ArrowRight, Sparkles, Search 
+  Bookmark, MapPin, Briefcase, Calendar, ChevronRight, Share2, Trash2, ArrowRight, Sparkles, Search, X 
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
