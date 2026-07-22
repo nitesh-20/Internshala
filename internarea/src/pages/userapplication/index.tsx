@@ -99,12 +99,14 @@ const Index = () => {
   );
 
   const filteredApplications = userApplication.filter((application: any) => {
+    const statusVal = application.status || 'pending';
     const searchMatch =
       application.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      application.category?.toLowerCase().includes(searchTerm.toLowerCase());
+      application.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      statusVal.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (filter === "all") return searchMatch;
-    return searchMatch && (application.status || 'pending').toLowerCase() === filter;
+    return searchMatch && statusVal.toLowerCase() === filter;
   });
 
   const handleWithdraw = (id: string) => {
