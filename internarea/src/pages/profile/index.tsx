@@ -215,8 +215,8 @@ const Index = () => {
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05]"></div>
         <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center pt-8">
-          <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">My Profile Dashboard</h1>
-          <p className="text-slate-400 max-w-xl font-medium">Track your application stats, saved bookmarks, subscription billing, and security history.</p>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">{t("profile.title", { defaultValue: "My Profile Dashboard" })}</h1>
+          <p className="text-slate-400 max-w-xl font-medium">{t("profile.subtitle", { defaultValue: "Track your application stats, saved bookmarks, subscription billing, and security history." })}</p>
         </div>
       </div>
 
@@ -270,10 +270,10 @@ const Index = () => {
 
               <div className="p-4 space-y-1">
                 {[
-                  { id: 'overview', icon: <User size={18} />, label: 'Overview' },
-                  { id: 'security', icon: <Shield size={18} />, label: 'Security & Logins' },
-                  { id: 'billing', icon: <CreditCard size={18} />, label: 'Billing & Plans' },
-                  { id: 'settings', icon: <Settings size={18} />, label: 'Preferences' }
+                  { id: 'overview', icon: <User size={18} />, label: t("profile.overview", { defaultValue: "Overview" }) },
+                  { id: 'security', icon: <Shield size={18} />, label: t("profile.security", { defaultValue: "Security & Logins" }) },
+                  { id: 'billing', icon: <CreditCard size={18} />, label: t("profile.billing", { defaultValue: "Billing & Plans" }) },
+                  { id: 'settings', icon: <Settings size={18} />, label: t("profile.preferences", { defaultValue: "Preferences" }) }
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -310,10 +310,10 @@ const Index = () => {
                       <Activity size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Applications</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">{t("home.active_students", { defaultValue: "Applications" })}</p>
                       <div className="flex items-baseline gap-2">
                         <span className="text-3xl font-black text-slate-900">{userApps.length}</span>
-                        <Link href="/userapplication" className="text-xs font-bold text-blue-600 hover:underline">Track</Link>
+                        <Link href="/userapplication" className="text-xs font-bold text-blue-600 hover:underline">{t("profile.track", { defaultValue: "Track" })}</Link>
                       </div>
                     </div>
                   </div>
@@ -324,10 +324,10 @@ const Index = () => {
                       <Bookmark size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Saved Internships</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">{t("navbar.saved_internships")}</p>
                       <div className="flex items-baseline gap-2">
                         <span className="text-3xl font-black text-slate-900">{savedInternshipsCount}</span>
-                        <Link href="/saved-internships" className="text-xs font-bold text-amber-600 hover:underline">View</Link>
+                        <Link href="/saved-internships" className="text-xs font-bold text-amber-600 hover:underline">{t("profile.view", { defaultValue: "View" })}</Link>
                       </div>
                     </div>
                   </div>
@@ -338,10 +338,10 @@ const Index = () => {
                       <Bookmark size={24} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Saved Jobs</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">{t("navbar.saved_jobs")}</p>
                       <div className="flex items-baseline gap-2">
                         <span className="text-3xl font-black text-slate-900">{savedJobsCount}</span>
-                        <Link href="/saved-jobs" className="text-xs font-bold text-indigo-600 hover:underline">View</Link>
+                        <Link href="/saved-jobs" className="text-xs font-bold text-indigo-600 hover:underline">{t("profile.view", { defaultValue: "View" })}</Link>
                       </div>
                     </div>
                   </div>
@@ -353,18 +353,18 @@ const Index = () => {
                   
                   {/* Subscription and Resume status */}
                   <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 space-y-6">
-                    <h3 className="text-lg font-bold text-slate-900 border-b pb-4">Subscription & Services</h3>
+                    <h3 className="text-lg font-bold text-slate-900 border-b pb-4">{t("profile.subscription_services", { defaultValue: "Subscription & Services" })}</h3>
                     
                     {/* Subscription info */}
                     <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border">
                       <div className="flex items-center gap-3">
                         <Crown className="text-amber-500 fill-amber-500/20" size={24} />
                         <div>
-                          <p className="text-sm font-extrabold text-slate-950 capitalize">{currentSub?.plan || 'Free'} Plan</p>
-                          <p className="text-xs text-slate-500">Usage: {currentSub?.applicationsUsed || 0} / {currentSub?.applicationLimit === -1 ? 'Unlimited' : currentSub?.applicationLimit || 1}</p>
+                          <p className="text-sm font-extrabold text-slate-950 capitalize">{currentSub?.plan || t("subscription.free_default", { defaultValue: "Free" })} {t("subscription.active", { defaultValue: "Plan" })}</p>
+                          <p className="text-xs text-slate-500">{t("subscription.used", { defaultValue: "Usage" })}: {currentSub?.applicationsUsed || 0} / {currentSub?.applicationLimit === -1 ? t("subscription.unlimited") : currentSub?.applicationLimit || 1}</p>
                         </div>
                       </div>
-                      <Link href="/subscription" className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow transition-colors">Upgrade</Link>
+                      <Link href="/subscription" className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow transition-colors">{t("subscription.upgrade_now")}</Link>
                     </div>
 
                     {/* Resume info */}
@@ -372,30 +372,30 @@ const Index = () => {
                       <div className="flex items-center gap-3">
                         <FileText className="text-blue-600" size={24} />
                         <div>
-                          <p className="text-sm font-extrabold text-slate-950">Premium ATS Resume</p>
-                          <p className="text-xs text-slate-500">Status: {resumeData?.isPaid ? "Generated successfully" : "Not generated yet"}</p>
+                          <p className="text-sm font-extrabold text-slate-950">{t("profile.premium_ats_resume", { defaultValue: "Premium ATS Resume" })}</p>
+                          <p className="text-xs text-slate-500">{t("profile.status", { defaultValue: "Status:" })} {resumeData?.isPaid ? t("profile.generated_success", { defaultValue: "Generated successfully" }) : t("profile.not_generated_yet", { defaultValue: "Not generated yet" })}</p>
                         </div>
                       </div>
                       <Link href="/resume" className="text-xs font-bold bg-slate-800 hover:bg-slate-950 text-white px-4 py-2 rounded-xl shadow transition-colors">
-                        {resumeData?.isPaid ? "Download" : "Create"}
+                        {resumeData?.isPaid ? t("resume_builder.download_pdf") : t("resume_builder.add_more")}
                       </Link>
                     </div>
                   </div>
 
                   {/* Profile Completion and Community info */}
                   <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 space-y-6">
-                    <h3 className="text-lg font-bold text-slate-900 border-b pb-4">Account Status</h3>
+                    <h3 className="text-lg font-bold text-slate-900 border-b pb-4">{t("profile.account_status", { defaultValue: "Account Status" })}</h3>
                     
                     {/* Completion bar */}
                     <div>
                       <div className="flex justify-between text-sm font-bold text-slate-700 mb-2">
-                        <span>Profile Completion</span>
+                        <span>{t("profile.completion_title", { defaultValue: "Profile Completion" })}</span>
                         <span className="text-blue-600">{profileCompletion}%</span>
                       </div>
                       <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                         <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${profileCompletion}%` }}></div>
                       </div>
-                      <p className="text-[11px] text-slate-400 mt-2 font-medium">Complete your profile to stand out to recruiters.</p>
+                      <p className="text-[11px] text-slate-400 mt-2 font-medium">{t("profile.completion_desc", { defaultValue: "Complete your profile to stand out to recruiters." })}</p>
                     </div>
 
                     {/* Community activity */}
@@ -403,11 +403,11 @@ const Index = () => {
                       <div className="flex items-center gap-3">
                         <Users className="text-emerald-600" size={24} />
                         <div>
-                          <p className="text-sm font-extrabold text-slate-950">Community Friends</p>
-                          <p className="text-xs text-slate-500">{friendCount} active connections</p>
+                          <p className="text-sm font-extrabold text-slate-950">{t("profile.community_friends", { defaultValue: "Community Friends" })}</p>
+                          <p className="text-xs text-slate-500">{friendCount} {t("profile.active_connections", { defaultValue: "active connections" })}</p>
                         </div>
                       </div>
-                      <Link href="/community" className="text-xs font-bold text-emerald-600 hover:underline">Open Forum</Link>
+                      <Link href="/community" className="text-xs font-bold text-emerald-600 hover:underline">{t("profile.open_forum", { defaultValue: "Open Forum" })}</Link>
                     </div>
 
                   </div>
@@ -416,15 +416,15 @@ const Index = () => {
 
                 {/* Recent Activity Timeline */}
                 <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8">
-                  <h3 className="text-lg font-bold text-slate-900 mb-6">Recent Activity Timeline</h3>
+                  <h3 className="text-lg font-bold text-slate-900 mb-6">{t("profile.recent_activity", { defaultValue: "Recent Activity Timeline" })}</h3>
                   <div className="relative border-l-2 border-slate-100 pl-6 space-y-6 ml-2">
                     
                     <div className="relative">
                       <span className="absolute -left-9 top-1.5 w-6.5 h-6.5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center border border-white">
                         <Clock size={12} />
                       </span>
-                      <h4 className="text-sm font-bold text-slate-900">Signed into Dashboard</h4>
-                      <p className="text-xs text-slate-400">Today</p>
+                      <h4 className="text-sm font-bold text-slate-900">{t("profile.signed_dashboard", { defaultValue: "Signed into Dashboard" })}</h4>
+                      <p className="text-xs text-slate-400">{t("profile.today", { defaultValue: "Today" })}</p>
                     </div>
 
                     {userApps.map((app, index) => (
@@ -432,7 +432,7 @@ const Index = () => {
                         <span className="absolute -left-9 top-1.5 w-6.5 h-6.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center border border-white">
                           <CheckSquare size={12} />
                         </span>
-                        <h4 className="text-sm font-bold text-slate-900">Applied to {app.company}</h4>
+                        <h4 className="text-sm font-bold text-slate-900">{t("profile.applied_to", { defaultValue: "Applied to" })} {app.company}</h4>
                         <p className="text-xs text-slate-500 mb-1">Role: {app.category} • Status: <span className="capitalize font-semibold text-slate-600">{app.status}</span></p>
                         <p className="text-[10px] text-slate-400">{new Date(app.createdAt || Date.now()).toLocaleDateString()}</p>
                       </div>
@@ -440,7 +440,7 @@ const Index = () => {
 
                     {userApps.length === 0 && (
                       <div className="relative text-slate-400 text-sm italic">
-                        No recent submission activities found. Explore and apply to internships today!
+                        {t("profile.no_activity", { defaultValue: "No recent submission activities found. Explore and apply to internships today!" })}
                       </div>
                     )}
 
@@ -454,11 +454,11 @@ const Index = () => {
               <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-1">Login Activity</h3>
-                    <p className="text-sm text-slate-500">Review your recent sign-ins to ensure account security.</p>
+                    <h3 className="text-xl font-bold text-slate-900 mb-1">{t("profile.login_activity", { defaultValue: "Login Activity" })}</h3>
+                    <p className="text-sm text-slate-500">{t("profile.login_activity_desc", { defaultValue: "Review your recent sign-ins to ensure account security." })}</p>
                   </div>
                   <div className="px-3 py-1.5 bg-slate-100 text-slate-600 font-semibold text-xs rounded-lg whitespace-nowrap">
-                    Page {historyPage} of {historyTotalPages}
+                    {t("profile.page_info", { defaultValue: "Page {{page}} of {{totalPages}}", page: historyPage, totalPages: historyTotalPages })}
                   </div>
                 </div>
 
@@ -466,17 +466,17 @@ const Index = () => {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-200">
-                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Date & Time</th>
-                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Device & Browser</th>
-                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Location (IP)</th>
-                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{t("profile.table.date_time", { defaultValue: "Date & Time" })}</th>
+                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{t("profile.table.device_browser", { defaultValue: "Device & Browser" })}</th>
+                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{t("profile.table.ip", { defaultValue: "Location (IP)" })}</th>
+                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{t("profile.table.status", { defaultValue: "Status" })}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {isHistoryLoading ? (
-                        <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-500 animate-pulse">Loading login history...</td></tr>
+                        <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-500 animate-pulse">{t("profile.loading_history", { defaultValue: "Loading login history..." })}</td></tr>
                       ) : loginHistory.length === 0 ? (
-                        <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-500">No recent login activity found.</td></tr>
+                        <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-500">{t("profile.no_history", { defaultValue: "No recent login activity found." })}</td></tr>
                       ) : (
                         loginHistory.map((entry) => (
                           <tr key={entry.id} className="hover:bg-slate-50 transition-colors">
@@ -510,14 +510,14 @@ const Index = () => {
                     disabled={historyPage === 1 || isHistoryLoading}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 transition-all shadow-sm"
                   >
-                    Previous
+                    {t("profile.prev_btn", { defaultValue: "Previous" })}
                   </button>
                   <button
                     onClick={() => setHistoryPage((prev) => historyTotalPages > 0 ? Math.min(prev + 1, historyTotalPages) : prev)}
                     disabled={historyPage >= historyTotalPages || isHistoryLoading}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 transition-all shadow-sm"
                   >
-                    Next
+                    {t("profile.next_btn", { defaultValue: "Next" })}
                   </button>
                 </div>
               </div>
@@ -527,11 +527,11 @@ const Index = () => {
               <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-1">Billing & Invoices</h3>
-                    <p className="text-sm text-slate-500">View your subscription plans and payment receipts.</p>
+                    <h3 className="text-xl font-bold text-slate-900 mb-1">{t("profile.billing_invoices", { defaultValue: "Billing & Invoices" })}</h3>
+                    <p className="text-sm text-slate-500">{t("profile.billing_desc", { defaultValue: "View your subscription plans and payment receipts." })}</p>
                   </div>
                   <div className="px-3 py-1.5 bg-slate-100 text-slate-600 font-semibold text-xs rounded-lg whitespace-nowrap">
-                    Page {paymentPage} of {paymentTotalPages}
+                    {t("profile.page_info", { defaultValue: "Page {{page}} of {{totalPages}}", page: paymentPage, totalPages: paymentTotalPages })}
                   </div>
                 </div>
 
@@ -539,17 +539,17 @@ const Index = () => {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-200">
-                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Invoice / Date</th>
-                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Plan</th>
-                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Amount</th>
-                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{t("profile.table.invoice_date", { defaultValue: "Invoice / Date" })}</th>
+                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{t("profile.table.plan", { defaultValue: "Plan" })}</th>
+                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{t("profile.table.amount", { defaultValue: "Amount" })}</th>
+                        <th className="py-4 px-4 text-xs font-bold text-slate-400 uppercase tracking-wider">{t("profile.table.status", { defaultValue: "Status" })}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {isPaymentLoading ? (
-                        <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-500 animate-pulse">Loading billing history...</td></tr>
+                        <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-500 animate-pulse">{t("profile.loading_billing", { defaultValue: "Loading billing history..." })}</td></tr>
                       ) : paymentHistory.length === 0 ? (
-                        <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-500">No payment history available yet.</td></tr>
+                        <tr><td colSpan={4} className="py-12 text-center text-sm text-slate-500">{t("profile.no_billing", { defaultValue: "No payment history available yet." })}</td></tr>
                       ) : (
                         paymentHistory.map((entry) => (
                           <tr key={entry._id} className="hover:bg-slate-50 transition-colors">
@@ -558,7 +558,7 @@ const Index = () => {
                               <p className="text-xs text-slate-500">{new Date(entry.paidAt || Date.now()).toLocaleDateString([], { dateStyle: 'medium' })}</p>
                             </td>
                             <td className="py-4 px-4 whitespace-nowrap text-sm font-bold text-slate-700 capitalize">
-                              {entry.plan} Plan
+                              {entry.plan} {t("subscription.active", { defaultValue: "Plan" })}
                             </td>
                             <td className="py-4 px-4 whitespace-nowrap text-sm font-bold text-slate-900">
                               ₹{entry.amount}
@@ -567,7 +567,7 @@ const Index = () => {
                               <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${
                                 entry.transactionStatus === "success" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
                               }`}>
-                                {entry.transactionStatus === "success" ? "Paid" : "Failed"}
+                                {entry.transactionStatus === "success" ? t("profile.table.paid", { defaultValue: "Paid" }) : t("profile.table.failed", { defaultValue: "Failed" })}
                               </span>
                             </td>
                           </tr>
@@ -583,14 +583,14 @@ const Index = () => {
                     disabled={paymentPage === 1 || isPaymentLoading}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 transition-all shadow-sm"
                   >
-                    Previous
+                    {t("profile.prev_btn", { defaultValue: "Previous" })}
                   </button>
                   <button
                     onClick={() => setPaymentPage((prev) => paymentTotalPages > 0 ? Math.min(prev + 1, paymentTotalPages) : prev)}
                     disabled={paymentPage >= paymentTotalPages || isPaymentLoading}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 disabled:opacity-50 transition-all shadow-sm"
                   >
-                    Next
+                    {t("profile.next_btn", { defaultValue: "Next" })}
                   </button>
                 </div>
               </div>
@@ -599,8 +599,8 @@ const Index = () => {
             {activeTab === "settings" && (
               <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <Settings className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Preferences</h3>
-                <p className="text-slate-500 max-w-sm mx-auto">Notification and account preferences will be available in the next update.</p>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">{t("profile.preferences", { defaultValue: "Preferences" })}</h3>
+                <p className="text-slate-500 max-w-sm mx-auto">{t("profile.preferences_desc", { defaultValue: "Notification and account preferences will be available in the next update." })}</p>
               </div>
             )}
 
