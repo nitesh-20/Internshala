@@ -341,12 +341,12 @@ const ResumeBuilder = () => {
                   <div className="space-y-6 animate-fadeIn">
                     <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">Personal Information</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div><label className="block text-sm font-medium text-gray-700">Full Name</label><input type="text" value={personalInfo.fullName} onChange={e => setPersonalInfo({...personalInfo, fullName: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500" /></div>
-                      <div><label className="block text-sm font-medium text-gray-700">Email</label><input type="email" value={personalInfo.email} onChange={e => setPersonalInfo({...personalInfo, email: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500" /></div>
-                      <div><label className="block text-sm font-medium text-gray-700">Phone</label><input type="text" value={personalInfo.phone} onChange={e => setPersonalInfo({...personalInfo, phone: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500" /></div>
-                      <div><label className="block text-sm font-medium text-gray-700">Date of Birth</label><input type="date" value={personalInfo.dob} onChange={e => setPersonalInfo({...personalInfo, dob: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500" /></div>
-                      <div><label className="block text-sm font-medium text-gray-700">City</label><input type="text" value={personalInfo.city} onChange={e => setPersonalInfo({...personalInfo, city: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500" /></div>
-                      <div><label className="block text-sm font-medium text-gray-700">Country</label><input type="text" value={personalInfo.country} onChange={e => setPersonalInfo({...personalInfo, country: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500" /></div>
+                      <div><label className="block text-sm font-medium text-gray-700">Full Name</label><input type="text" value={personalInfo.fullName} onChange={e => setPersonalInfo({...personalInfo, fullName: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-slate-900" /></div>
+                      <div><label className="block text-sm font-medium text-gray-700">Email</label><input type="email" value={personalInfo.email} onChange={e => setPersonalInfo({...personalInfo, email: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-slate-900" /></div>
+                      <div><label className="block text-sm font-medium text-gray-700">Phone</label><input type="text" value={personalInfo.phone} onChange={e => setPersonalInfo({...personalInfo, phone: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-slate-900" /></div>
+                      <div><label className="block text-sm font-medium text-gray-700">Date of Birth</label><input type="date" value={personalInfo.dob} onChange={e => setPersonalInfo({...personalInfo, dob: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-slate-900" /></div>
+                      <div><label className="block text-sm font-medium text-gray-700">City</label><input type="text" value={personalInfo.city} onChange={e => setPersonalInfo({...personalInfo, city: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-slate-900" /></div>
+                      <div><label className="block text-sm font-medium text-gray-700">Country</label><input type="text" value={personalInfo.country} onChange={e => setPersonalInfo({...personalInfo, country: e.target.value})} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-slate-900" /></div>
                     </div>
                   </div>
                 )}
@@ -356,7 +356,7 @@ const ResumeBuilder = () => {
                   <div className="space-y-6 animate-fadeIn">
                     <h2 className="text-2xl font-bold text-gray-800 border-b pb-2">Professional Summary</h2>
                     <p className="text-sm text-gray-500 mb-2">Write a short, engaging about me or career objective.</p>
-                    <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={6} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500" placeholder="I am a highly motivated software engineer..."></textarea>
+                    <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={6} className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 text-slate-900" placeholder="I am a highly motivated software engineer..."></textarea>
                   </div>
                 )}
 
@@ -371,11 +371,11 @@ const ResumeBuilder = () => {
                       <div key={idx} className="bg-gray-50 p-6 rounded-xl border relative mb-4">
                         {idx > 0 && <button onClick={() => removeArrayItem(setEducation, idx)} className="absolute top-4 right-4 text-red-500 text-sm font-medium">Remove</button>}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div><label className="block text-xs text-gray-600">Degree</label><input type="text" value={edu.degree} onChange={e => handleArrayChange(setEducation, idx, 'degree', e.target.value)} className="w-full p-2 border rounded-lg" placeholder="B.Tech Computer Science" /></div>
-                          <div><label className="block text-xs text-gray-600">College / University</label><input type="text" value={edu.college} onChange={e => handleArrayChange(setEducation, idx, 'college', e.target.value)} className="w-full p-2 border rounded-lg" /></div>
-                          <div><label className="block text-xs text-gray-600">Start Year</label><input type="text" value={edu.startYear} onChange={e => handleArrayChange(setEducation, idx, 'startYear', e.target.value)} className="w-full p-2 border rounded-lg" placeholder="2020" /></div>
-                          <div><label className="block text-xs text-gray-600">End Year</label><input type="text" value={edu.endYear} onChange={e => handleArrayChange(setEducation, idx, 'endYear', e.target.value)} className="w-full p-2 border rounded-lg" placeholder="2024" /></div>
-                          <div><label className="block text-xs text-gray-600">CGPA / Percentage</label><input type="text" value={edu.score} onChange={e => handleArrayChange(setEducation, idx, 'score', e.target.value)} className="w-full p-2 border rounded-lg" /></div>
+                          <div><label className="block text-xs text-gray-600">Degree</label><input type="text" value={edu.degree} onChange={e => handleArrayChange(setEducation, idx, 'degree', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" placeholder="B.Tech Computer Science" /></div>
+                          <div><label className="block text-xs text-gray-600">College / University</label><input type="text" value={edu.college} onChange={e => handleArrayChange(setEducation, idx, 'college', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" /></div>
+                          <div><label className="block text-xs text-gray-600">Start Year</label><input type="text" value={edu.startYear} onChange={e => handleArrayChange(setEducation, idx, 'startYear', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" placeholder="2020" /></div>
+                          <div><label className="block text-xs text-gray-600">End Year</label><input type="text" value={edu.endYear} onChange={e => handleArrayChange(setEducation, idx, 'endYear', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" placeholder="2024" /></div>
+                          <div><label className="block text-xs text-gray-600">CGPA / Percentage</label><input type="text" value={edu.score} onChange={e => handleArrayChange(setEducation, idx, 'score', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" /></div>
                         </div>
                       </div>
                     ))}
@@ -393,11 +393,11 @@ const ResumeBuilder = () => {
                       <div key={idx} className="bg-gray-50 p-6 rounded-xl border relative mb-4">
                         {idx > 0 && <button onClick={() => removeArrayItem(setExperience, idx)} className="absolute top-4 right-4 text-red-500 text-sm font-medium">Remove</button>}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div><label className="block text-xs text-gray-600">Role/Title</label><input type="text" value={exp.role} onChange={e => handleArrayChange(setExperience, idx, 'role', e.target.value)} className="w-full p-2 border rounded-lg" placeholder="Frontend Intern" /></div>
-                          <div><label className="block text-xs text-gray-600">Company</label><input type="text" value={exp.company} onChange={e => handleArrayChange(setExperience, idx, 'company', e.target.value)} className="w-full p-2 border rounded-lg" /></div>
-                          <div><label className="block text-xs text-gray-600">Start Date</label><input type="text" value={exp.startDate} onChange={e => handleArrayChange(setExperience, idx, 'startDate', e.target.value)} className="w-full p-2 border rounded-lg" placeholder="Jan 2023" /></div>
-                          <div><label className="block text-xs text-gray-600">End Date</label><input type="text" value={exp.endDate} onChange={e => handleArrayChange(setExperience, idx, 'endDate', e.target.value)} className="w-full p-2 border rounded-lg" placeholder="Present" /></div>
-                          <div className="md:col-span-2"><label className="block text-xs text-gray-600">Description</label><textarea rows={3} value={exp.description} onChange={e => handleArrayChange(setExperience, idx, 'description', e.target.value)} className="w-full p-2 border rounded-lg" /></div>
+                          <div><label className="block text-xs text-gray-600">Role/Title</label><input type="text" value={exp.role} onChange={e => handleArrayChange(setExperience, idx, 'role', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" placeholder="Frontend Intern" /></div>
+                          <div><label className="block text-xs text-gray-600">Company</label><input type="text" value={exp.company} onChange={e => handleArrayChange(setExperience, idx, 'company', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" /></div>
+                          <div><label className="block text-xs text-gray-600">Start Date</label><input type="text" value={exp.startDate} onChange={e => handleArrayChange(setExperience, idx, 'startDate', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" placeholder="Jan 2023" /></div>
+                          <div><label className="block text-xs text-gray-600">End Date</label><input type="text" value={exp.endDate} onChange={e => handleArrayChange(setExperience, idx, 'endDate', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" placeholder="Present" /></div>
+                          <div className="md:col-span-2"><label className="block text-xs text-gray-600">Description</label><textarea rows={3} value={exp.description} onChange={e => handleArrayChange(setExperience, idx, 'description', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" /></div>
                         </div>
                       </div>
                     ))}
@@ -415,11 +415,11 @@ const ResumeBuilder = () => {
                       <div key={idx} className="bg-gray-50 p-6 rounded-xl border relative mb-4">
                         {idx > 0 && <button onClick={() => removeArrayItem(setProjects, idx)} className="absolute top-4 right-4 text-red-500 text-sm font-medium">Remove</button>}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div><label className="block text-xs text-gray-600">Project Name</label><input type="text" value={proj.name} onChange={e => handleArrayChange(setProjects, idx, 'name', e.target.value)} className="w-full p-2 border rounded-lg" /></div>
-                          <div><label className="block text-xs text-gray-600">Technologies Used</label><input type="text" value={proj.technologies} onChange={e => handleArrayChange(setProjects, idx, 'technologies', e.target.value)} className="w-full p-2 border rounded-lg" placeholder="React, Node.js" /></div>
-                          <div><label className="block text-xs text-gray-600">GitHub Link</label><input type="text" value={proj.githubLink} onChange={e => handleArrayChange(setProjects, idx, 'githubLink', e.target.value)} className="w-full p-2 border rounded-lg" /></div>
-                          <div><label className="block text-xs text-gray-600">Live Link</label><input type="text" value={proj.liveLink} onChange={e => handleArrayChange(setProjects, idx, 'liveLink', e.target.value)} className="w-full p-2 border rounded-lg" /></div>
-                          <div className="md:col-span-2"><label className="block text-xs text-gray-600">Description</label><textarea rows={3} value={proj.description} onChange={e => handleArrayChange(setProjects, idx, 'description', e.target.value)} className="w-full p-2 border rounded-lg" /></div>
+                          <div><label className="block text-xs text-gray-600">Project Name</label><input type="text" value={proj.name} onChange={e => handleArrayChange(setProjects, idx, 'name', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" /></div>
+                          <div><label className="block text-xs text-gray-600">Technologies Used</label><input type="text" value={proj.technologies} onChange={e => handleArrayChange(setProjects, idx, 'technologies', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" placeholder="React, Node.js" /></div>
+                          <div><label className="block text-xs text-gray-600">GitHub Link</label><input type="text" value={proj.githubLink} onChange={e => handleArrayChange(setProjects, idx, 'githubLink', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" /></div>
+                          <div><label className="block text-xs text-gray-600">Live Link</label><input type="text" value={proj.liveLink} onChange={e => handleArrayChange(setProjects, idx, 'liveLink', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" /></div>
+                          <div className="md:col-span-2"><label className="block text-xs text-gray-600">Description</label><textarea rows={3} value={proj.description} onChange={e => handleArrayChange(setProjects, idx, 'description', e.target.value)} className="w-full p-2 border rounded-lg text-slate-900" /></div>
                         </div>
                       </div>
                     ))}
@@ -440,7 +440,7 @@ const ResumeBuilder = () => {
                         ))}
                       </div>
                       <div className="flex gap-2">
-                        <input type="text" id="skillInput" className="flex-1 p-3 border rounded-xl" placeholder="e.g. React, Python" onKeyDown={e => {
+                        <input type="text" id="skillInput" className="flex-1 p-3 border rounded-xl text-slate-900" placeholder="e.g. React, Python" onKeyDown={e => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
                             handleSimpleArrayAdd(setSkills, e.currentTarget.value);
@@ -454,8 +454,8 @@ const ResumeBuilder = () => {
                     <div>
                       <h2 className="text-xl font-bold text-gray-800 border-b pb-2 mb-4">Social Links</h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label className="block text-xs text-gray-600">LinkedIn</label><input type="text" value={socialLinks.linkedin} onChange={e => setSocialLinks({...socialLinks, linkedin: e.target.value})} className="w-full p-3 border rounded-xl" placeholder="https://linkedin.com/in/..." /></div>
-                        <div><label className="block text-xs text-gray-600">GitHub</label><input type="text" value={socialLinks.github} onChange={e => setSocialLinks({...socialLinks, github: e.target.value})} className="w-full p-3 border rounded-xl" placeholder="https://github.com/..." /></div>
+                        <div><label className="block text-xs text-gray-600">LinkedIn</label><input type="text" value={socialLinks.linkedin} onChange={e => setSocialLinks({...socialLinks, linkedin: e.target.value})} className="w-full p-3 border rounded-xl text-slate-900" placeholder="https://linkedin.com/in/..." /></div>
+                        <div><label className="block text-xs text-gray-600">GitHub</label><input type="text" value={socialLinks.github} onChange={e => setSocialLinks({...socialLinks, github: e.target.value})} className="w-full p-3 border rounded-xl text-slate-900" placeholder="https://github.com/..." /></div>
                       </div>
                     </div>
                   </div>
