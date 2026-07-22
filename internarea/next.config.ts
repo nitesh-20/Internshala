@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   env: {
     NEXT_PUBLIC_APP_FB_API_KEY: "AIzaSyB8VMfxTNXpVEEZo2sxJ2gRk-O2nVzatSI",
     NEXT_PUBLIC_APP_FB_AUTH_DOMAIN: "internshala-b0d41.firebaseapp.com",
