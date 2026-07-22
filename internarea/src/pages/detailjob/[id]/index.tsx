@@ -32,7 +32,7 @@ const Index = () => {
     if (!id) return;
     const fetchData = async () => {
       try {
-        const res = await axios.get(`http://localhost:5001/api/job/${id}`);
+        const res = await axios.get(`https://backend-tau-snowy-58.vercel.app/api/job/${id}`);
         setJobData(res.data);
       } catch (error) {
         console.log(error);
@@ -49,7 +49,7 @@ const Index = () => {
 
   useEffect(() => {
     if (user?.email) {
-      axios.get(`http://localhost:5001/api/resume/${user.email}`)
+      axios.get(`https://backend-tau-snowy-58.vercel.app/api/resume/${user.email}`)
         .then(res => setUserResume(res.data))
         .catch(err => console.log("No resume found"));
     }
@@ -86,7 +86,7 @@ const Index = () => {
         availability,
         resumeUrl: userResume && userResume.isPaid ? userResume.pdfUrl : null
       };
-      await axios.post("http://localhost:5001/api/application", applicationData);
+      await axios.post("https://backend-tau-snowy-58.vercel.app/api/application", applicationData);
       toast.success("Application submitted successfully");
       router.push('/job');
     } catch (error: any) {
