@@ -3,8 +3,10 @@ import axios from "axios";
 import Link from "next/link";
 import React, { useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const ForgotPasswordPage = () => {
+  const { t } = useTranslation();
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-tau-snowy-58.vercel.app";
   const [mode, setMode] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
@@ -17,7 +19,7 @@ const ForgotPasswordPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentValue.trim()) {
-      toast.error(mode === "email" ? "Email is required." : "Phone number is required.");
+      toast.error(mode === "email" ? t("auth.email_required", { defaultValue: "Email is required." }) : t("auth.phone_required", { defaultValue: "Phone number is required." }));
       return;
     }
 
@@ -29,7 +31,7 @@ const ForgotPasswordPage = () => {
       setServerMessage(res.data.message);
       toast.success(res.data.message);
     } catch (error: any) {
-      const message = error.response?.data?.error || "Failed to process password reset.";
+      const message = error.response?.data?.error || t("auth.reset_failed", { defaultValue: "Failed to process password reset." });
       setServerMessage(message);
       toast.error(message);
     } finally {
@@ -39,35 +41,35 @@ const ForgotPasswordPage = () => {
 
   return (
     <AuthLayout
-      title="Forgot your password?"
-      subtitle="Recover access using your registered email or phone number. For security, password reset is allowed only once every 24 hours."
+      title={t("auth.forgot_password_title", { defaultValue: "Forgot your password?" })}
+      subtitle={t("auth.forgot_password_desc", { defaultValue: "Recover access using your registered email or phone number. For security, password reset is allowed only once every 24 hours." })}
       footer={
         <p>
-          Remembered it?{" "}
+          {t("auth.remembered_it", { defaultValue: "Remembered it?" })}{" "}
           <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700">
-            Go back to login
+            {t("auth.back_login", { defaultValue: "Go back to login" })}
           </Link>
         </p>
       }
     >
       <div className="mb-6 flex rounded-2xl bg-slate-100 p-1">
         <button type="button" onClick={() => setMode("email")} className={`flex-1 rounded-2xl px-4 py-3 text-sm font-medium transition ${mode === "email" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600"}`}>
-          Registered Email
+          {t("auth.registered_email", { defaultValue: "Registered Email" })}
         </button>
         <button type="button" onClick={() => setMode("phone")} className={`flex-1 rounded-2xl px-4 py-3 text-sm font-medium transition ${mode === "phone" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600"}`}>
-          Registered Phone
+          {t("auth.registered_phone", { defaultValue: "Registered Phone" })}
         </button>
       </div>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
         {mode === "email" ? (
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your registered email" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.enter_registered_email", { defaultValue: "Enter your registered email" })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
         ) : (
-          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Enter your registered phone number" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={t("auth.enter_registered_phone", { defaultValue: "Enter your registered phone number" })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
         )}
 
         <button type="submit" disabled={isLoading} className="w-full rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50">
-          {isLoading ? "Processing..." : "Reset password"}
+          {isLoading ? t("resume_builder.processing") : t("auth.reset_password_btn", { defaultValue: "Reset password" })}
         </button>
       </form>
 
