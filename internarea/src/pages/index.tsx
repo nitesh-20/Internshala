@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const successStories = [
   { name: "Aarav Sharma", role: "Software Engineer at Google", rating: 5, quote: "InternArea helped me land my dream internship at Google. The premium Resume Builder was a game-changer for my applications." },
@@ -70,6 +71,7 @@ const popularCategories = [
 ];
 
 export default function Home() {
+  const { t } = useTranslation();
   const [internships, setInternships] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -104,10 +106,10 @@ export default function Home() {
     let updated = [...savedList];
     if (updated.includes(id)) {
       updated = updated.filter(item => item !== id);
-      toast.info("Removed from saved list");
+      toast.info(t("home.removed_saved"));
     } else {
       updated.push(id);
-      toast.success("Saved successfully!");
+      toast.success(t("home.saved_success"));
     }
     setSavedList(updated);
     localStorage.setItem("saved_opportunities", JSON.stringify(updated));
@@ -116,9 +118,9 @@ export default function Home() {
   const handleShare = (id: string, type: 'internship' | 'job') => {
     const shareUrl = `${window.location.origin}/detail${type === 'internship' ? 'iternship' : 'job'}/${id}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
-      toast.success("Share link copied to clipboard!");
+      toast.success(t("home.share_copied"));
     }).catch(() => {
-      toast.error("Failed to copy link");
+      toast.error(t("home.share_failed"));
     });
   };
 
@@ -134,17 +136,17 @@ export default function Home() {
           <div className="flex-1 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 font-semibold text-sm mb-6">
               <Sparkles size={16} className="text-blue-600 animate-spin" />
-              <span>India's Premium Career Launchpad</span>
+              <span>{t("home.launchpad")}</span>
             </div>
             
             <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight">
-              Find Your Dream <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Internship & Job</span> <br />
-              With Industry Leaders.
+              {t("home.hero_title")} <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{t("home.hero_span")}</span> <br />
+              {t("home.hero_sub")}
             </h1>
             
             <p className="text-lg text-slate-600 mb-10 max-w-xl mx-auto lg:mx-0">
-              Apply to verified high-stipend internships and high-salary developer jobs. Build your ATS-friendly resume and track application logs instantly.
+              {t("home.hero_desc")}
             </p>
 
             {/* Interactive Search Bar */}
@@ -153,7 +155,7 @@ export default function Home() {
                 <Search className="text-slate-400 w-5 h-5 flex-shrink-0" />
                 <input 
                   type="text" 
-                  placeholder="Job title, category, skills..." 
+                  placeholder={t("home.search_placeholder")}
                   className="w-full bg-transparent border-none outline-none px-3 text-slate-700 placeholder-slate-400 text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -163,7 +165,7 @@ export default function Home() {
                 <MapPin className="text-slate-400 w-5 h-5 flex-shrink-0" />
                 <input 
                   type="text" 
-                  placeholder="City, state, or 'Remote'" 
+                  placeholder={t("home.city_placeholder")}
                   className="w-full bg-transparent border-none outline-none px-3 text-slate-700 placeholder-slate-400 text-sm"
                   value={searchLocation}
                   onChange={(e) => setSearchLocation(e.target.value)}
@@ -173,13 +175,13 @@ export default function Home() {
                 href={`/internship?search=${searchQuery}&loc=${searchLocation}`}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-bold transition-all hover:shadow-lg flex items-center justify-center gap-2 whitespace-nowrap"
               >
-                Search <ArrowRight size={18} />
+                {t("home.search_btn")} <ArrowRight size={18} />
               </Link>
             </div>
 
             {/* Popular Searches */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5">
-              <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider mr-2">Popular:</span>
+              <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider mr-2">{t("home.popular")}</span>
               {["Remote", "React", "Python", "SaaS", "Figma"].map((term) => (
                 <button 
                   key={term} 
@@ -200,17 +202,17 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">IA</div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-sm">Resume Score Engine</h3>
-                    <p className="text-xs text-slate-400">Powered by InternArea AI</p>
+                    <h3 className="font-bold text-slate-900 text-sm">{t("home.score_engine")}</h3>
+                    <p className="text-xs text-slate-400">{t("home.score_powered")}</p>
                   </div>
                 </div>
-                <span className="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-bold border border-emerald-100">Live</span>
+                <span className="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-bold border border-emerald-100">{t("home.score_live")}</span>
               </div>
               <div className="space-y-3">
                 <div className="bg-slate-50 p-3.5 rounded-xl border">
                   <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
-                    <span>ATS Optimization</span>
-                    <span className="text-blue-600">92% Match</span>
+                    <span>{t("home.ats_opt")}</span>
+                    <span className="text-blue-600">92% {t("home.match")}</span>
                   </div>
                   <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                     <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 w-[92%] rounded-full"></div>
@@ -218,8 +220,8 @@ export default function Home() {
                 </div>
                 <div className="bg-slate-50 p-3.5 rounded-xl border">
                   <div className="flex justify-between text-xs font-bold text-slate-600 mb-1.5">
-                    <span>Keywords Matched</span>
-                    <span className="text-indigo-600">Excellent</span>
+                    <span>{t("home.keywords_matched")}</span>
+                    <span className="text-indigo-600">{t("home.excellent")}</span>
                   </div>
                   <div className="flex gap-1.5 flex-wrap">
                     {["React", "Node.js", "MongoDB", "Redux"].map(k => (
@@ -240,19 +242,19 @@ export default function Home() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center divide-x divide-slate-800">
             <div>
               <p className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">55,000+</p>
-              <p className="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest">Active Students</p>
+              <p className="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest">{t("home.active_students")}</p>
             </div>
             <div>
               <p className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">12,000+</p>
-              <p className="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest">Premium Internships</p>
+              <p className="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest">{t("home.premium_internships")}</p>
             </div>
             <div>
               <p className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">4,000+</p>
-              <p className="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest">Partner Companies</p>
+              <p className="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest">{t("home.partner_companies")}</p>
             </div>
             <div>
               <p className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">96%</p>
-              <p className="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest">Hiring Placement Rate</p>
+              <p className="text-xs md:text-sm font-bold text-blue-400 uppercase tracking-widest">{t("home.placement_rate")}</p>
             </div>
           </div>
         </div>
@@ -261,8 +263,8 @@ export default function Home() {
       {/* SECTION 3: POPULAR CATEGORIES */}
       <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">Popular Internship Categories</h2>
-          <p className="text-slate-500 text-base">Select your interest area and explore top matches immediately.</p>
+          <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">{t("home.popular_title")}</h2>
+          <p className="text-slate-500 text-base">{t("home.popular_desc")}</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -275,8 +277,12 @@ export default function Home() {
               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-5 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                 {cat.icon}
               </div>
-              <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">{cat.name}</h3>
-              <span className="text-xs font-semibold text-slate-400">{cat.count}</span>
+              <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors mb-1">
+                {t("home.categories." + cat.name.toLowerCase().replace(/[^a-z0-9]/g, "_"), cat.name)}
+              </h3>
+              <span className="text-xs font-semibold text-slate-400">
+                {t("home.offers_count", { defaultValue: cat.count, count: parseInt(cat.count.replace(/\D/g, '')) })}
+              </span>
             </Link>
           ))}
         </div>
@@ -288,12 +294,12 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
             <div>
               <div className="inline-flex items-center gap-1.5 text-blue-600 text-xs font-bold uppercase tracking-wider mb-2">
-                <Sparkles size={12} /> Live Postings
+                <Sparkles size={12} /> {t("home.live_postings")}
               </div>
-              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Featured Internships</h2>
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">{t("home.featured_internships")}</h2>
             </div>
             <Link href="/internship" className="flex items-center gap-1 text-blue-600 font-bold hover:text-blue-700 group text-sm">
-              Browse all internships <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              {t("home.browse_all_internships")} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
 
@@ -312,11 +318,11 @@ export default function Home() {
                       <div className="flex gap-1">
                         {isPremium && (
                           <span className="px-2 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-bold rounded border border-amber-200 uppercase tracking-wider flex items-center gap-0.5">
-                            <Crown size={10} className="fill-amber-500" /> Premium
+                            <Crown size={10} className="fill-amber-500" /> {t("resume_builder.premium", { defaultValue: "Premium" })}
                           </span>
                         )}
                         <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded border border-blue-100 uppercase tracking-wider">
-                          Intern
+                          {t("home.intern_badge", { defaultValue: "Intern" })}
                         </span>
                       </div>
                     </div>
@@ -333,11 +339,11 @@ export default function Home() {
 
                     <div className="py-3 border-y border-slate-50 flex items-center justify-between text-xs text-slate-600 mb-5 font-semibold">
                       <div className="flex flex-col">
-                        <span className="text-[10px] uppercase text-slate-400 tracking-wider font-bold">Stipend</span>
+                        <span className="text-[10px] uppercase text-slate-400 tracking-wider font-bold">{t("resume_builder.stipend", { defaultValue: "Stipend" })}</span>
                         <span>{internship.stipend}</span>
                       </div>
                       <div className="flex flex-col text-right">
-                        <span className="text-[10px] uppercase text-slate-400 tracking-wider font-bold">Duration</span>
+                        <span className="text-[10px] uppercase text-slate-400 tracking-wider font-bold">{t("resume_builder.duration", { defaultValue: "Duration" })}</span>
                         <span>{internship.duration}</span>
                       </div>
                     </div>
@@ -347,7 +353,7 @@ export default function Home() {
                         href={`/detailiternship/${internship._id}`} 
                         className="flex-1 py-2 px-3 bg-slate-50 text-slate-800 text-xs font-bold text-center rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors"
                       >
-                        Apply Now
+                        {t("home.apply_now")}
                       </Link>
                       
                       <button 
@@ -369,8 +375,8 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-20 bg-slate-50 rounded-2xl border border-slate-200 border-dashed">
-              <h3 className="text-lg font-bold text-slate-700 mb-2">No internships found</h3>
-              <p className="text-slate-500">Check back later for premium opportunities.</p>
+              <h3 className="text-lg font-bold text-slate-700 mb-2">{t("home.no_internships_found")}</h3>
+              <p className="text-slate-500">{t("home.no_internships_desc")}</p>
             </div>
           )}
         </div>
@@ -381,12 +387,12 @@ export default function Home() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
           <div>
             <div className="inline-flex items-center gap-1.5 text-indigo-600 text-xs font-bold uppercase tracking-wider mb-2">
-              <Briefcase size={12} /> Permanent Jobs
+              <Briefcase size={12} /> {t("home.permanent_jobs")}
             </div>
-            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Featured Jobs</h2>
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">{t("home.featured_jobs")}</h2>
           </div>
           <Link href="/job" className="flex items-center gap-1 text-indigo-600 font-bold hover:text-indigo-700 group text-sm">
-            Browse all jobs <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            {t("home.browse_all_jobs")} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
@@ -401,7 +407,7 @@ export default function Home() {
                       {job.company.charAt(0)}
                     </div>
                     <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded border border-indigo-100 uppercase tracking-wider">
-                      Full-time
+                      {t("home.full_time_badge", { defaultValue: "Full-time" })}
                     </span>
                   </div>
 
@@ -417,11 +423,11 @@ export default function Home() {
 
                   <div className="py-3 border-y border-slate-50 flex items-center justify-between text-xs text-slate-600 mb-5 font-semibold">
                     <div className="flex flex-col">
-                      <span className="text-[10px] uppercase text-slate-400 tracking-wider font-bold">Salary</span>
+                      <span className="text-[10px] uppercase text-slate-400 tracking-wider font-bold">{t("resume_builder.salary", { defaultValue: "Salary" })}</span>
                       <span>{job.CTC}</span>
                     </div>
                     <div className="flex flex-col text-right">
-                      <span className="text-[10px] uppercase text-slate-400 tracking-wider font-bold">Experience</span>
+                      <span className="text-[10px] uppercase text-slate-400 tracking-wider font-bold">{t("resume_builder.experience", { defaultValue: "Experience" })}</span>
                       <span>{job.Experience}</span>
                     </div>
                   </div>
@@ -431,7 +437,7 @@ export default function Home() {
                       href={`/detailjob/${job._id}`} 
                       className="flex-1 py-2 px-3 bg-slate-50 text-slate-800 text-xs font-bold text-center rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors"
                     >
-                      Apply Now
+                      {t("home.apply_now")}
                     </Link>
                     
                     <button 
@@ -453,8 +459,8 @@ export default function Home() {
           </div>
         ) : (
           <div className="text-center py-20 bg-slate-50 rounded-2xl border border-slate-200 border-dashed">
-            <h3 className="text-lg font-bold text-slate-700 mb-2">No jobs found</h3>
-            <p className="text-slate-500">Check back later for permanent career opportunities.</p>
+            <h3 className="text-lg font-bold text-slate-700 mb-2">{t("home.no_jobs_found")}</h3>
+            <p className="text-slate-500">{t("home.no_jobs_desc")}</p>
           </div>
         )}
       </section>
@@ -463,8 +469,8 @@ export default function Home() {
       <section className="py-24 bg-white border-y border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">Top Companies Hiring Now</h2>
-            <p className="text-slate-500 text-base">Kickstart your career with the world's most innovative organizations.</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">{t("home.top_companies")}</h2>
+            <p className="text-slate-500 text-base">{t("home.top_companies_desc")}</p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -478,12 +484,14 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="font-extrabold text-slate-950 text-sm mb-1">{c.name}</h3>
-                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">{c.industry}</p>
+                  <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                    {t("home.industries." + c.industry.toLowerCase().replace(/[^a-z0-9]/g, "_"), c.industry)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-1 text-amber-500 text-xs font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-100 mb-3">
                   <Star size={12} className="fill-amber-500" /> {c.rating}
                 </div>
-                <span className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer">{c.positions} open positions</span>
+                <span className="text-xs font-semibold text-blue-600 hover:underline cursor-pointer">{c.positions} {t("home.open_positions")}</span>
               </div>
             ))}
           </div>
@@ -494,8 +502,8 @@ export default function Home() {
       <section className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">Student Success Stories</h2>
-            <p className="text-slate-500 text-base">Hear how over 15+ students verified their achievements and landed careers.</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">{t("home.success_stories")}</h2>
+            <p className="text-slate-500 text-base">{t("home.success_stories_desc")}</p>
           </div>
 
           {/* Testimonial slider view */}
@@ -506,7 +514,7 @@ export default function Home() {
               <div>
                 <div className="text-5xl text-blue-200 font-serif leading-none mb-6">“</div>
                 <p className="text-lg md:text-xl text-slate-700 italic leading-relaxed mb-8">
-                  {successStories[testimonialIndex].quote}
+                  {t("home.testimonials." + testimonialIndex + ".quote", successStories[testimonialIndex].quote)}
                 </p>
               </div>
               
@@ -516,8 +524,12 @@ export default function Home() {
                     {successStories[testimonialIndex].name.split(' ').map(n => n[0]).join('')}
                   </div>
                   <div className="text-left">
-                    <h4 className="font-extrabold text-slate-950 text-sm">{successStories[testimonialIndex].name}</h4>
-                    <p className="text-xs text-slate-500 font-medium">{successStories[testimonialIndex].role}</p>
+                    <h4 className="font-extrabold text-slate-950 text-sm">
+                      {t("home.testimonials." + testimonialIndex + ".name", successStories[testimonialIndex].name)}
+                    </h4>
+                    <p className="text-xs text-slate-500 font-medium">
+                      {t("home.testimonials." + testimonialIndex + ".role", successStories[testimonialIndex].role)}
+                    </p>
                   </div>
                 </div>
 
@@ -546,8 +558,8 @@ export default function Home() {
       <section className="py-24 bg-white border-t border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">Popular Skills</h2>
-            <p className="text-slate-500 text-base">Target the skills in highest demand by hiring teams.</p>
+            <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">{t("home.popular_skills")}</h2>
+            <p className="text-slate-500 text-base">{t("home.popular_skills_desc")}</p>
           </div>
 
           <div className="flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
@@ -573,21 +585,21 @@ export default function Home() {
           <div className="relative z-10 py-16 px-8 md:px-16 text-center flex flex-col items-center justify-center gap-8">
             <div className="max-w-xl">
               <Mail className="w-12 h-12 text-blue-200 mx-auto mb-4 animate-bounce" />
-              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">Never miss an opportunity</h2>
-              <p className="text-blue-100 text-base">Subscribe to our newsletter to receive curated lists of premium remote internships and jobs directly in your inbox.</p>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white mb-4">{t("home.newsletter_title")}</h2>
+              <p className="text-blue-100 text-base">{t("home.newsletter_desc")}</p>
             </div>
             
             <div className="w-full max-w-md flex flex-col sm:flex-row gap-3">
               <input 
                 type="email" 
-                placeholder="Enter your email address" 
+                placeholder={t("home.newsletter_placeholder")} 
                 className="flex-1 px-5 py-3.5 rounded-xl border-none outline-none text-slate-800 placeholder-slate-400 text-sm focus:ring-4 focus:ring-blue-500/20 shadow-md"
               />
               <button 
-                onClick={() => { toast.success("Subscribed successfully!"); }}
+                onClick={() => { toast.success(t("home.subscribed_success")); }}
                 className="bg-yellow-400 hover:bg-yellow-300 text-blue-950 px-8 py-3.5 rounded-xl font-bold transition-all hover:shadow-lg flex items-center justify-center gap-2 whitespace-nowrap"
               >
-                Subscribe <Send size={16} />
+                {t("home.subscribe_btn")} <Send size={16} />
               </button>
             </div>
           </div>
