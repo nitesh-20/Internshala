@@ -213,7 +213,11 @@ const ResumeBuilder = () => {
       }
 
       if (!isRazorpayReady || !window.Razorpay) {
-        throw new Error("Razorpay checkout is still loading. Please try again in a moment.");
+        if (typeof window !== "undefined" && window.Razorpay) {
+          setIsRazorpayReady(true);
+        } else {
+          throw new Error("Razorpay checkout is still loading. Please try again in a moment.");
+        }
       }
 
       setIsCheckoutLoading(true);

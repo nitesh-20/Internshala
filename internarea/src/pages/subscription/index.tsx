@@ -61,8 +61,12 @@ const SubscriptionPage = () => {
     if (planName === "Free") return;
 
     if (!isRazorpayReady || !window.Razorpay) {
-      toast.error("Payment gateway is loading. Please try again.");
-      return;
+      if (typeof window !== "undefined" && window.Razorpay) {
+        setIsRazorpayReady(true);
+      } else {
+        toast.error("Payment gateway is loading. Please try again.");
+        return;
+      }
     }
 
     setIsCheckoutLoading(true);
