@@ -38,7 +38,7 @@ const Navbar = () => {
   const [isLoginOtpLoading, setIsLoginOtpLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [expireTimer, setExpireTimer] = useState(300);
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001";
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-tau-snowy-58.vercel.app";
 
   // Timers Effect
   React.useEffect(() => {

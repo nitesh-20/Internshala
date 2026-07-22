@@ -71,8 +71,8 @@ export default function Home() {
     const fetchData = async () => {
       try {
         const [internshipRes, jobRes] = await Promise.all([
-          axios.get("http://localhost:5001/api/internship").catch(() => ({ data: [] })),
-          axios.get("http://localhost:5001/api/job").catch(() => ({ data: [] })),
+          axios.get("https://backend-tau-snowy-58.vercel.app/api/internship").catch(() => ({ data: [] })),
+          axios.get("https://backend-tau-snowy-58.vercel.app/api/job").catch(() => ({ data: [] })),
         ]);
         setInternships(internshipRes.data.slice(0, 6)); // Top 6
         setJobs(jobRes.data.slice(0, 6)); // Top 6
