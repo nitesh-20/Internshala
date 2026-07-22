@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 type LoginOtpModalProps = {
   isOpen: boolean;
@@ -25,33 +26,33 @@ const LoginOtpModal = ({
   expireTimer,
   email,
 }: LoginOtpModalProps) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="mx-4 w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold text-slate-900">Login Verification</h2>
+        <h2 className="text-2xl font-bold text-slate-900">{t("login_otp_modal.title")}</h2>
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Chrome login requires a one-time password. Enter the 6-digit OTP sent to{" "}
-          <span className="font-semibold text-slate-900">{email || "your registered email"}</span>.
+          {t("login_otp_modal.desc", { email: email || t("login_otp_modal.default_email", { defaultValue: "your registered email" }) })}
         </p>
 
         <div className="mt-5 flex items-center justify-between text-sm text-slate-500">
           <span>
-            Expires in{" "}
+            {t("login_otp_modal.expires_in")}{" "}
             <span className="font-mono font-semibold text-rose-500">
               {Math.floor(expireTimer / 60)}:{(expireTimer % 60).toString().padStart(2, "0")}
             </span>
           </span>
           {resendTimer > 0 ? (
-            <span>Resend in {resendTimer}s</span>
+            <span>{t("login_otp_modal.resend_in", { seconds: resendTimer })}</span>
           ) : (
             <button
               onClick={onResend}
               disabled={isLoading || expireTimer === 0}
               className="font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50"
             >
-              Resend OTP
+              {t("login_otp_modal.resend_otp")}
             </button>
           )}
         </div>
@@ -60,7 +61,7 @@ const LoginOtpModal = ({
           type="text"
           value={otp}
           onChange={(e) => onOtpChange(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
-          placeholder="Enter 6-digit OTP"
+          placeholder={t("login_otp_modal.placeholder")}
           disabled={isLoading || expireTimer === 0}
           className="mt-5 w-full rounded-2xl border border-slate-200 px-4 py-3 text-center text-xl font-bold tracking-[0.35em] text-slate-900 outline-none transition focus:border-blue-500 disabled:bg-slate-100"
         />
@@ -71,7 +72,7 @@ const LoginOtpModal = ({
             disabled={isLoading}
             className="flex-1 rounded-2xl bg-slate-100 px-4 py-3 font-medium text-slate-700 transition hover:bg-slate-200 disabled:opacity-50"
           >
-            Cancel
+            {t("login_otp_modal.cancel")}
           </button>
           <button
             onClick={onVerify}
@@ -81,7 +82,7 @@ const LoginOtpModal = ({
             {isLoading ? (
               <span className="h-5 w-5 animate-spin rounded-full border-b-2 border-white" />
             ) : (
-              "Verify Login"
+              t("login_otp_modal.verify_login")
             )}
           </button>
         </div>
