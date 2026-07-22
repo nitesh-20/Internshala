@@ -118,6 +118,11 @@ const CommunityPage = () => {
         phoneNumber: sourceUser?.phoneNumber || "",
       });
 
+      if (syncRes.data.requiresOtp) {
+        setAuthHeaders({});
+        return {};
+      }
+
       const syncedUser = {
         uid: firebaseUser?.uid || storedAuth?.uid,
         id: syncRes.data.user?.id,
