@@ -1,5 +1,8 @@
 import { login, selectuser } from "@/Feature/Userslice";
-import { ExternalLink, Mail, User, Camera, Shield, CreditCard, Activity, Users, Settings, ChevronRight } from "lucide-react";
+import { 
+  ExternalLink, Mail, User, Camera, Shield, CreditCard, Activity, Users, Settings, 
+  ChevronRight, Bookmark, FileText, Crown, CheckCircle2, Clock, CheckSquare, PlusCircle
+} from "lucide-react";
 import Link from "next/link";
 import React, { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +11,7 @@ import { updateProfile } from "firebase/auth";
 import { auth } from "@/firebase/firebase";
 import { useTranslation } from "react-i18next";
 import { getApiBaseUrl, getAuthHeaders } from "@/lib/api";
+import { useRouter } from "next/router";
 
 type LoginActivityItem = {
   id: string;
@@ -35,6 +39,7 @@ const Index = () => {
   const { t } = useTranslation();
   const user = useSelector(selectuser);
   const dispatch = useDispatch();
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [resumeData, setResumeData] = useState<any>(null);
@@ -52,13 +57,24 @@ const Index = () => {
 
   const [activeTab, setActiveTab] = useState("overview");
 
+  const [userApps, setUserApps] = useState<any[]>([]);
+  const [savedInternshipsCount, setSavedInternshipsCount] = useState(0);
+  const [savedJobsCount, setSavedJobsCount] = useState(0);
+  const [currentSub, setCurrentSub] = useState<any>(null);
+
   const apiBaseUrl = getApiBaseUrl();
+
+  useEffect(() => {
+    if (router.query.tab) {
+      setActiveTab(router.query.tab as string);
+    }
+  }, [router.query.tab]);
 
   useEffect(() => {
     if (user?.email) {
       axios.get(`${apiBaseUrl}/api/resume/${user.email}`)
         .then(res => setResumeData(res.data))
-        .catch(err => console.log("No premium resume found."));
+        .catch(() => console.log("No premium resume found."));
     }
   }, [user, apiBaseUrl]);
 
@@ -68,6 +84,42 @@ const Index = () => {
     axios.get(`${apiBaseUrl}/api/community/me`, { headers })
       .then((res) => setFriendCount(res.data.user?.friendCount || res.data.friends?.length || 0))
       .catch(() => setFriendCount(0));
+  }, [apiBaseUrl]);
+
+  useEffect(() => {
+    if (user?.email) {
+      axios.get(`${apiBaseUrl}/api/application`)
+        .then(res => {
+          const myApps = res.data.filter((app: any) => app.user?.name === user?.name || app.user?.email === user?.email);
+          setUserApps(myApps);
+        }).catch(err => console.log(err));
+    }
+  }, [user, apiBaseUrl]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("saved_opportunities");
+    if (saved) {
+      const ids = JSON.parse(saved);
+      Promise.all([
+        axios.get(`${apiBaseUrl}/api/internship`).catch(() => ({ data: [] })),
+        axios.get(`${apiBaseUrl}/api/job`).catch(() => ({ data: [] }))
+      ]).then(([intRes, jobRes]) => {
+        const intIds = intRes.data.map((i: any) => i._id);
+        const jobIds = jobRes.data.map((j: any) => j._id);
+        setSavedInternshipsCount(ids.filter((id: string) => intIds.includes(id)).length);
+        setSavedJobsCount(ids.filter((id: string) => jobIds.includes(id)).length);
+      }).catch(() => {
+        setSavedInternshipsCount(ids.length);
+      });
+    }
+  }, [apiBaseUrl]);
+
+  useEffect(() => {
+    const headers = getAuthHeaders();
+    if (!headers.Authorization) return;
+    axios.get(`${apiBaseUrl}/api/subscription/current`, { headers })
+      .then(res => setCurrentSub(res.data))
+      .catch(() => setCurrentSub(null));
   }, [apiBaseUrl]);
 
   useEffect(() => {
@@ -133,6 +185,17 @@ const Index = () => {
     return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
   };
 
+  const calculateCompletion = () => {
+    let score = 20; // base for email registration
+    if (user?.name) score += 20;
+    if (user?.photo && !user.photo.includes("flaticon")) score += 20;
+    if (resumeData) score += 20;
+    if (userApps.length > 0) score += 20;
+    return Math.min(score, 100);
+  };
+
+  const profileCompletion = calculateCompletion();
+
   return (
     <div className="min-h-screen bg-slate-50 pb-24 font-sans">
       
@@ -141,8 +204,8 @@ const Index = () => {
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05]"></div>
         <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px] pointer-events-none"></div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center pt-8">
-          <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">My Profile</h1>
-          <p className="text-slate-400 max-w-xl">Manage your account settings, track subscriptions, and secure your profile.</p>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight mb-2">My Profile Dashboard</h1>
+          <p className="text-slate-400 max-w-xl font-medium">Track your application stats, saved bookmarks, subscription billing, and security history.</p>
         </div>
       </div>
 
@@ -227,57 +290,149 @@ const Index = () => {
             {activeTab === "overview" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 
-                {/* Metric Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex items-center gap-6 group hover:border-blue-200 transition-colors">
-                    <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <Activity size={28} />
+                {/* Metric Summary Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  
+                  {/* Applications card */}
+                  <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex items-center gap-5 hover:border-blue-200 transition-colors">
+                    <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                      <Activity size={24} />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Active Applications</p>
-                      <div className="flex items-end gap-3">
-                        <span className="text-4xl font-extrabold text-slate-900">0</span>
-                        <Link href="/userapplication" className="text-sm font-semibold text-blue-600 hover:underline mb-1">View all</Link>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Applications</p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-black text-slate-900">{userApps.length}</span>
+                        <Link href="/userapplication" className="text-xs font-bold text-blue-600 hover:underline">Track</Link>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex items-center gap-6 group hover:border-emerald-200 transition-colors">
-                    <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                      <Users size={28} />
+                  {/* Saved Internships card */}
+                  <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex items-center gap-5 hover:border-amber-200 transition-colors">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                      <Bookmark size={24} />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-1">Connections</p>
-                      <div className="flex items-end gap-3">
-                        <span className="text-4xl font-extrabold text-slate-900">{friendCount}</span>
-                        <Link href="/community" className="text-sm font-semibold text-emerald-600 hover:underline mb-1">Community</Link>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Saved Internships</p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-black text-slate-900">{savedInternshipsCount}</span>
+                        <Link href="/saved-internships" className="text-xs font-bold text-amber-600 hover:underline">View</Link>
                       </div>
                     </div>
                   </div>
+
+                  {/* Saved Jobs card */}
+                  <div className="bg-white rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex items-center gap-5 hover:border-indigo-200 transition-colors">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                      <Bookmark size={24} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Saved Jobs</p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-black text-slate-900">{savedJobsCount}</span>
+                        <Link href="/saved-jobs" className="text-xs font-bold text-indigo-600 hover:underline">View</Link>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
 
-                {/* Quick Actions */}
+                {/* Second row overview info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  {/* Subscription and Resume status */}
+                  <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 space-y-6">
+                    <h3 className="text-lg font-bold text-slate-900 border-b pb-4">Subscription & Services</h3>
+                    
+                    {/* Subscription info */}
+                    <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border">
+                      <div className="flex items-center gap-3">
+                        <Crown className="text-amber-500 fill-amber-500/20" size={24} />
+                        <div>
+                          <p className="text-sm font-extrabold text-slate-950 capitalize">{currentSub?.plan || 'Free'} Plan</p>
+                          <p className="text-xs text-slate-500">Usage: {currentSub?.applicationsUsed || 0} / {currentSub?.applicationLimit === -1 ? 'Unlimited' : currentSub?.applicationLimit || 1}</p>
+                        </div>
+                      </div>
+                      <Link href="/subscription" className="text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl shadow transition-colors">Upgrade</Link>
+                    </div>
+
+                    {/* Resume info */}
+                    <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border">
+                      <div className="flex items-center gap-3">
+                        <FileText className="text-blue-600" size={24} />
+                        <div>
+                          <p className="text-sm font-extrabold text-slate-950">Premium ATS Resume</p>
+                          <p className="text-xs text-slate-500">Status: {resumeData?.isPaid ? "Generated successfully" : "Not generated yet"}</p>
+                        </div>
+                      </div>
+                      <Link href="/resume" className="text-xs font-bold bg-slate-800 hover:bg-slate-950 text-white px-4 py-2 rounded-xl shadow transition-colors">
+                        {resumeData?.isPaid ? "Download" : "Create"}
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Profile Completion and Community info */}
+                  <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 space-y-6">
+                    <h3 className="text-lg font-bold text-slate-900 border-b pb-4">Account Status</h3>
+                    
+                    {/* Completion bar */}
+                    <div>
+                      <div className="flex justify-between text-sm font-bold text-slate-700 mb-2">
+                        <span>Profile Completion</span>
+                        <span className="text-blue-600">{profileCompletion}%</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div className="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style={{ width: `${profileCompletion}%` }}></div>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-2 font-medium">Complete your profile to stand out to recruiters.</p>
+                    </div>
+
+                    {/* Community activity */}
+                    <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border">
+                      <div className="flex items-center gap-3">
+                        <Users className="text-emerald-600" size={24} />
+                        <div>
+                          <p className="text-sm font-extrabold text-slate-950">Community Friends</p>
+                          <p className="text-xs text-slate-500">{friendCount} active connections</p>
+                        </div>
+                      </div>
+                      <Link href="/community" className="text-xs font-bold text-emerald-600 hover:underline">Open Forum</Link>
+                    </div>
+
+                  </div>
+
+                </div>
+
+                {/* Recent Activity Timeline */}
                 <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8">
-                  <h3 className="text-xl font-bold text-slate-900 mb-6">Quick Actions</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Link href="/resume" className="flex items-center justify-between p-5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all group">
-                      <div>
-                        <h4 className="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Edit Resume</h4>
-                        <p className="text-sm text-slate-500">Update your premium builder resume</p>
+                  <h3 className="text-lg font-bold text-slate-900 mb-6">Recent Activity Timeline</h3>
+                  <div className="relative border-l-2 border-slate-100 pl-6 space-y-6 ml-2">
+                    
+                    <div className="relative">
+                      <span className="absolute -left-9 top-1.5 w-6.5 h-6.5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center border border-white">
+                        <Clock size={12} />
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-900">Signed into Dashboard</h4>
+                      <p className="text-xs text-slate-400">Today</p>
+                    </div>
+
+                    {userApps.map((app, index) => (
+                      <div key={app._id || index} className="relative">
+                        <span className="absolute -left-9 top-1.5 w-6.5 h-6.5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center border border-white">
+                          <CheckSquare size={12} />
+                        </span>
+                        <h4 className="text-sm font-bold text-slate-900">Applied to {app.company}</h4>
+                        <p className="text-xs text-slate-500 mb-1">Role: {app.category} • Status: <span className="capitalize font-semibold text-slate-600">{app.status}</span></p>
+                        <p className="text-[10px] text-slate-400">{new Date(app.createdAt || Date.now()).toLocaleDateString()}</p>
                       </div>
-                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <ExternalLink size={18} />
+                    ))}
+
+                    {userApps.length === 0 && (
+                      <div className="relative text-slate-400 text-sm italic">
+                        No recent submission activities found. Explore and apply to internships today!
                       </div>
-                    </Link>
-                    <Link href="/subscription" className="flex items-center justify-between p-5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all group">
-                      <div>
-                        <h4 className="font-bold text-slate-900 mb-1 group-hover:text-blue-600 transition-colors">Upgrade Plan</h4>
-                        <p className="text-sm text-slate-500">Unlock more applications and features</p>
-                      </div>
-                      <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <CreditCard size={18} />
-                      </div>
-                    </Link>
+                    )}
+
                   </div>
                 </div>
 
