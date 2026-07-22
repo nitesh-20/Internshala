@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import logo from "../Assets/logo.png";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { auth, provider, firebaseInitError } from "../firebase/firebase";
-import { ChevronDown, Search, Globe, UserRound, Crown, Bell, LogOut, Bookmark, FileText, CreditCard, User, Menu } from "lucide-react";
+import { ChevronDown, Search, Globe, UserRound, Crown, Bell, LogOut, Bookmark, FileText, CreditCard, User, Menu, X as XIcon } from "lucide-react";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -22,12 +23,22 @@ const Navbar = () => {
   const user = useSelector(selectuser);
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
+  const router = useRouter();
   
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showPersonalMenu, setShowPersonalMenu] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState("");
+
+  // Global Search suggestions states
+  const [searchItems, setSearchItems] = useState<any[]>([]);
+  const [navSearchQuery, setNavSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [pendingLang, setPendingLang] = useState("");
   const [showLoginOtpModal, setShowLoginOtpModal] = useState(false);
   const [loginOtp, setLoginOtp] = useState("");
@@ -40,6 +51,109 @@ const Navbar = () => {
   const [resendTimer, setResendTimer] = useState(0);
   const [expireTimer, setExpireTimer] = useState(300);
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-tau-snowy-58.vercel.app";
+
+  // Load search data
+  React.useEffect(() => {
+    const fetchSearchItems = async () => {
+      try {
+        const [intRes, jobRes] = await Promise.all([
+          axios.get(`${apiBaseUrl}/api/internship`).catch(() => ({ data: [] })),
+          axios.get(`${apiBaseUrl}/api/job`).catch(() => ({ data: [] }))
+        ]);
+        const items = [
+          ...intRes.data.map((i: any) => ({ ...i, type: 'internship' })),
+          ...jobRes.data.map((j: any) => ({ ...j, type: 'job' }))
+        ];
+        setSearchItems(items);
+      } catch (err) {
+        console.log("Failed to load search index items", err);
+      }
+    };
+    fetchSearchItems();
+  }, [apiBaseUrl]);
+
+  // Debounce search query
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(navSearchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [navSearchQuery]);
+
+  // Handle suggestions mapping
+  React.useEffect(() => {
+    if (!debouncedQuery.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    setIsSearching(true);
+    const query = debouncedQuery.toLowerCase();
+    const filtered = searchItems.filter(item => {
+      const titleMatch = item.title?.toLowerCase().includes(query);
+      const companyMatch = item.company?.toLowerCase().includes(query);
+      const categoryMatch = item.category?.toLowerCase().includes(query);
+      const locationMatch = item.location?.toLowerCase().includes(query);
+      
+      const skillsList = typeof item.skills === 'string' 
+        ? item.skills.split(',') 
+        : Array.isArray(item.skills) 
+          ? item.skills 
+          : [];
+      const skillsMatch = skillsList.some((s: string) => s.toLowerCase().includes(query));
+      
+      return titleMatch || companyMatch || categoryMatch || locationMatch || skillsMatch;
+    }).slice(0, 8);
+    
+    setSuggestions(filtered);
+    setIsSearching(false);
+    setActiveSuggestionIndex(-1);
+  }, [debouncedQuery, searchItems]);
+
+  // Close suggestions on outside click
+  React.useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".search-container-nav")) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveSuggestionIndex(prev => 
+        prev < suggestions.length - 1 ? prev + 1 : prev
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveSuggestionIndex(prev => (prev > 0 ? prev - 1 : -1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeSuggestionIndex >= 0 && activeSuggestionIndex < suggestions.length) {
+        const selected = suggestions[activeSuggestionIndex];
+        goToDetail(selected);
+      } else if (navSearchQuery.trim()) {
+        // Search globally by taking them to internships listing with ?search query
+        router.push(`/internship?search=${encodeURIComponent(navSearchQuery)}`);
+        setShowSuggestions(false);
+      }
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
+    }
+  };
+
+  const goToDetail = (item: any) => {
+    setShowSuggestions(false);
+    setNavSearchQuery("");
+    if (item.type === 'job') {
+      router.push(`/detailjob/${item._id}`);
+    } else {
+      router.push(`/detailiternship/${item._id}`);
+    }
+  };
 
   // Timers Effect
   React.useEffect(() => {
@@ -282,13 +396,76 @@ const Navbar = () => {
               </Link>
               
               {/* Search Bar */}
-              <div className="ml-4 flex items-center bg-slate-100 hover:bg-slate-200/80 transition-colors rounded-full px-4 py-2 border border-transparent focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10">
-                <Search size={18} className="text-slate-400" />
-                <input
-                  type="text"
-                  placeholder={t("search_opportunities")}
-                  className="ml-2 bg-transparent border-none focus:outline-none text-sm w-48 text-slate-700 placeholder-slate-400"
-                />
+              <div className="ml-4 relative search-container-nav">
+                <div className="flex items-center bg-slate-100 hover:bg-slate-200/80 transition-colors rounded-full px-4 py-2 border border-transparent focus-within:border-blue-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/10">
+                  <Search size={18} className="text-slate-400" />
+                  <input
+                    type="text"
+                    value={navSearchQuery}
+                    onChange={(e) => {
+                      setNavSearchQuery(e.target.value);
+                      setShowSuggestions(true);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={t("search_opportunities")}
+                    className="ml-2 bg-transparent border-none focus:outline-none text-sm w-48 text-slate-700 placeholder-slate-400"
+                  />
+                  {navSearchQuery && (
+                    <button 
+                      onClick={() => {
+                        setNavSearchQuery("");
+                        setSuggestions([]);
+                      }}
+                      className="ml-1 text-slate-400 hover:text-slate-600 focus:outline-none"
+                    >
+                      <XIcon size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Suggestions Menu */}
+                {showSuggestions && (navSearchQuery.trim() !== "") && (
+                  <div className="absolute left-0 mt-2 w-80 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.15)] border border-slate-100 z-[100] max-h-96 overflow-y-auto p-2">
+                    {isSearching ? (
+                      <div className="p-4 text-center text-sm text-slate-400 animate-pulse">
+                        Searching...
+                      </div>
+                    ) : suggestions.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-slate-400">
+                        No matches found
+                      </div>
+                    ) : (
+                      <div className="py-1">
+                        {suggestions.map((item, idx) => (
+                          <button
+                            key={item._id}
+                            onClick={() => goToDetail(item)}
+                            className={`w-full text-left flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+                              activeSuggestionIndex === idx 
+                                ? "bg-blue-50 text-blue-700 font-medium" 
+                                : "text-slate-700 hover:bg-slate-50"
+                            }`}
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-slate-50 border flex items-center justify-center text-xs font-bold text-slate-400 shrink-0">
+                              {item.company?.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold truncate text-slate-850">{item.title}</p>
+                              <p className="text-xs text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
+                                <span className="font-semibold text-slate-500 uppercase">{item.company}</span>
+                                <span>•</span>
+                                <span>{item.location}</span>
+                                <span>•</span>
+                                <span className="capitalize text-blue-600 bg-blue-50 px-1 rounded font-bold text-[9px]">{item.type}</span>
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
