@@ -7,8 +7,10 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 
 const RegisterPage = () => {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const router = useRouter();
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "https://backend-tau-snowy-58.vercel.app";
@@ -29,15 +31,15 @@ const RegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.password) {
-      toast.error("Name and password are required.");
+      toast.error(t("auth.name_password_required", { defaultValue: "Name and password are required." }));
       return;
     }
     if (!formData.email && !formData.phone) {
-      toast.error("Provide an email or phone number.");
+      toast.error(t("auth.provide_email_phone", { defaultValue: "Provide an email or phone number." }));
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      toast.error("Passwords do not match.");
+      toast.error(t("auth.passwords_dont_match", { defaultValue: "Passwords do not match." }));
       return;
     }
 
@@ -47,10 +49,10 @@ const RegisterPage = () => {
       const authUser = { ...res.data.user, token: res.data.token, authProvider: "local" };
       setStoredAuth(authUser);
       dispatch(login(authUser));
-      toast.success("Registration successful.");
+      toast.success(t("auth.register_success", { defaultValue: "Registration successful." }));
       await router.push("/");
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to register.");
+      toast.error(error.response?.data?.error || t("auth.register_failed", { defaultValue: "Failed to register." }));
     } finally {
       setIsLoading(false);
     }
@@ -58,25 +60,25 @@ const RegisterPage = () => {
 
   return (
     <AuthLayout
-      title="Create your account"
-      subtitle="Register with email/password while keeping Google sign-in available for users who prefer it."
+      title={t("auth.create_account_title", { defaultValue: "Create your account" })}
+      subtitle={t("auth.create_account_desc", { defaultValue: "Register with email/password while keeping Google sign-in available for users who prefer it." })}
       footer={
         <p>
-          Already have an account?{" "}
+          {t("auth.already_have_account", { defaultValue: "Already have an account?" })}{" "}
           <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700">
-            Sign in here
+            {t("auth.signin_here", { defaultValue: "Sign in here" })}
           </Link>
         </p>
       }
     >
       <form className="space-y-4" onSubmit={handleSubmit}>
-        <input name="name" value={formData.name} onChange={handleChange} placeholder="Full name" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
-        <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="Email address" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
-        <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone number" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
-        <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder="Password" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
-        <input name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} placeholder="Confirm password" className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
+        <input name="name" value={formData.name} onChange={handleChange} placeholder={t("auth.fullname_placeholder", { defaultValue: "Full name" })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
+        <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder={t("auth.email_placeholder", { defaultValue: "Email address" })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
+        <input name="phone" value={formData.phone} onChange={handleChange} placeholder={t("auth.phone_placeholder", { defaultValue: "Phone number" })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
+        <input name="password" type="password" value={formData.password} onChange={handleChange} placeholder={t("auth.password_placeholder", { defaultValue: "Password" })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
+        <input name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} placeholder={t("auth.confirm_password_placeholder", { defaultValue: "Confirm password" })} className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-blue-500" />
         <button type="submit" disabled={isLoading} className="w-full rounded-2xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50">
-          {isLoading ? "Creating account..." : "Create account"}
+          {isLoading ? t("auth.creating_account", { defaultValue: "Creating account..." }) : t("auth.create_account_btn", { defaultValue: "Create account" })}
         </button>
       </form>
     </AuthLayout>
