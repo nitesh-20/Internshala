@@ -137,11 +137,7 @@ router.post("/posts", requireAuth, writeLimiter, async (req, res) => {
       return res.status(400).json({ error: "Add a caption or at least one media file." });
     }
 
-    if (!Array.isArray(media) || media.length === 0) {
-      return res.status(400).json({ error: "At least one image or video is required." });
-    }
-
-    if (!["image", "video", "mixed"].includes(mediaType)) {
+    if (media.length > 0 && !["image", "video", "mixed"].includes(mediaType)) {
       return res.status(400).json({ error: "Invalid media type." });
     }
 
