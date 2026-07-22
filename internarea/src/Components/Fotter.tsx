@@ -18,8 +18,8 @@ export default function Footer() {
               Empowering the next generation of professionals. Discover premium internships, exclusive jobs, and build your career with InternArea.
             </p>
             <div className="flex space-x-4">
-              <SocialIcon Icon={Linkedin} href="#" />
-              <SocialIcon Icon={Github} href="#" />
+              <SocialIcon Icon={Linkedin} href="https://linkedin.com" />
+              <SocialIcon Icon={Github} href="https://github.com/nitesh-20/Internshala" />
               <SocialIcon Icon={Twitter} href="#" />
               <SocialIcon Icon={Instagram} href="#" />
             </div>
@@ -28,20 +28,19 @@ export default function Footer() {
           <FooterSection 
             title="Opportunities" 
             items={[
-              { label: "Internships in Bangalore", link: "/internship" },
-              { label: "Remote Jobs", link: "/job" },
-              { label: "Software Engineering", link: "/job" },
-              { label: "Marketing Internships", link: "/internship" },
-              { label: "Premium Access", link: "/subscription" }
+              { label: "Internships", link: "/internship" },
+              { label: "Jobs", link: "/job" },
+              { label: "Community", link: "/community" },
+              { label: "Resume Builder", link: "/resume" },
+              { label: "Premium Plans", link: "/subscription" }
             ]} 
           />
           <FooterSection 
             title="Resources" 
             items={[
-              { label: "Resume Builder", link: "/resume" },
-              { label: "Community Forum", link: "/community" },
-              { label: "Career Advice", link: "#" },
-              { label: "Interview Prep", link: "#" },
+              { label: "FAQs", link: "#" },
+              { label: "Support Centre", link: "#" },
+              { label: "Career Guidance", link: "#" },
               { label: "Success Stories", link: "#" }
             ]} 
           />
@@ -49,9 +48,8 @@ export default function Footer() {
             title="Company" 
             items={[
               { label: "About Us", link: "#" },
-              { label: "Careers", link: "#" },
-              { label: "Press & Media", link: "#" },
-              { label: "Contact Us", link: "#" }
+              { label: "Contact Us", link: "#" },
+              { label: "We're Hiring", link: "#" }
             ]} 
           />
           <FooterSection 
@@ -59,8 +57,7 @@ export default function Footer() {
             items={[
               { label: "Privacy Policy", link: "#" },
               { label: "Terms of Service", link: "#" },
-              { label: "Cookie Policy", link: "#" },
-              { label: "Trust & Safety", link: "#" }
+              { label: "Cookie Policy", link: "#" }
             ]} 
           />
         </div>
