@@ -1,7 +1,10 @@
 import { Facebook, Twitter, Instagram, Linkedin, Github, Mail } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 export default function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="bg-slate-900 text-slate-300 py-16 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,7 +17,7 @@ export default function Footer() {
               </span>
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed mb-6">
-              Empowering the next generation of professionals. Discover premium internships, exclusive jobs, and build your career with InternArea.
+              {t("footer.empowering")}
             </p>
             <div className="flex space-x-4">
               <SocialIcon Icon={Linkedin} href="https://linkedin.com" />
@@ -25,49 +28,49 @@ export default function Footer() {
           </div>
 
           <FooterSection 
-            title="Opportunities" 
+            title={t("footer.opportunities")} 
             items={[
-              { label: "Internships", link: "/internship" },
-              { label: "Jobs", link: "/job" },
-              { label: "Community", link: "/community" },
-              { label: "Resume Builder", link: "/resume" },
-              { label: "Premium Plans", link: "/subscription" }
+              { label: t("navbar.internships"), link: "/internship" },
+              { label: t("navbar.jobs"), link: "/job" },
+              { label: t("navbar.community"), link: "/community" },
+              { label: t("navbar.resume_builder"), link: "/resume" },
+              { label: t("navbar.premium"), link: "/subscription" }
             ]} 
           />
           <FooterSection 
-            title="Resources" 
+            title={t("footer.resources")} 
             items={[
-              { label: "FAQs", link: "#" },
-              { label: "Support Centre", link: "#" },
-              { label: "Career Guidance", link: "#" },
-              { label: "Success Stories", link: "#" }
+              { label: t("footer.faqs"), link: "#" },
+              { label: t("footer.support_centre"), link: "#" },
+              { label: t("footer.career_guidance"), link: "#" },
+              { label: t("footer.success_stories"), link: "#" }
             ]} 
           />
           <FooterSection 
-            title="Company" 
+            title={t("footer.company")} 
             items={[
-              { label: "About Us", link: "#" },
-              { label: "Contact Us", link: "#" },
-              { label: "We're Hiring", link: "#" }
+              { label: t("footer.about_us"), link: "#" },
+              { label: t("footer.contact_us"), link: "#" },
+              { label: t("footer.hiring"), link: "#" }
             ]} 
           />
           <FooterSection 
-            title="Legal" 
+            title={t("footer.legal")} 
             items={[
-              { label: "Privacy Policy", link: "#" },
-              { label: "Terms of Service", link: "#" },
-              { label: "Cookie Policy", link: "#" }
+              { label: t("footer.privacy_policy"), link: "#" },
+              { label: t("footer.terms_of_service"), link: "#" },
+              { label: t("footer.cookie_policy"), link: "#" }
             ]} 
           />
         </div>
 
         <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} InternArea. All rights reserved.
+            {t("footer.all_rights_reserved", { year: new Date().getFullYear() })}
           </p>
           <div className="flex items-center gap-6">
             <button className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-slate-700">
-              <Mail size={16} /> Contact Support
+              <Mail size={16} /> {t("footer.contact_support")}
             </button>
           </div>
         </div>
